@@ -3,10 +3,12 @@ managed:
   enabled: true
 plugins:
   # Phase 1: Generate service-specific router proto files
-  - name: grpcrouter-proto
-    path: ../../cmd/protoc-gen-grpcrouter-proto/protoc-gen-grpcrouter-proto
+  - name: grpcrouter
+    path: ../../cmd/protoc-gen-grpcrouter/protoc-gen-grpcrouter
     out: gen/proto
     strategy: directory
+    opt:
+      - mode=proto
   
   # Standard Go generation for original service protos
   - name: go
@@ -20,13 +22,9 @@ plugins:
       - paths=source_relative
   
   # Phase 4: Generate service bridge for connecting existing services to router
-  - name: grpcrouter-bridge
-    path: ../../cmd/protoc-gen-grpcrouter-bridge/protoc-gen-grpcrouter-bridge
+  - name: grpcrouter
+    path: ../../cmd/protoc-gen-grpcrouter/protoc-gen-grpcrouter
     out: gen/go
     strategy: directory
-  
-  # Phase 3: Generate router implementation (will be added to Step 2)
-  # - name: grpcrouter-impl
-  #   path: ../../cmd/protoc-gen-grpcrouter-impl/protoc-gen-grpcrouter-impl
-  #   out: gen/go
-  #   strategy: directory
+    opt:
+      - mode=bridge

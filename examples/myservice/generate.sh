@@ -39,10 +39,12 @@ cp gen/proto/myservice/v1/service_router.proto proto/myservice/v1/
 cat > buf.gen.phase3.yaml << 'EOF'
 version: v1
 plugins:
-  - name: grpcrouter-impl
-    path: ../../cmd/protoc-gen-grpcrouter-impl/protoc-gen-grpcrouter-impl
+  - name: grpcrouter
+    path: ../../cmd/protoc-gen-grpcrouter/protoc-gen-grpcrouter
     out: gen/go
     strategy: directory
+    opt:
+      - mode=impl
 EOF
 
 # Generate router implementation from the router proto
