@@ -6,7 +6,6 @@ package grpcrouterv1
 import (
 	"context"
 	"io"
-	"log"
 	"time"
 
 	"google.golang.org/grpc/codes"

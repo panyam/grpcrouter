@@ -13,8 +13,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 
-	"github.com/panyam/grpcrouter/examples/myservice/gen/go/myservice/v1"
-	pb "github.com/panyam/grpcrouter/proto"
+	pb "github.com/panyam/grpcrouter/examples/myservice/gen/go/grpcrouter/v1"
+	myservice "github.com/panyam/grpcrouter/examples/myservice/gen/go/myservice/v1"
 	"github.com/panyam/grpcrouter/router"
 )
 

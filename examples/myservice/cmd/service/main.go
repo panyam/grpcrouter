@@ -16,8 +16,8 @@ import (
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/panyam/grpcrouter/examples/myservice"
-	pb "github.com/panyam/grpcrouter/proto"
+	pb "github.com/panyam/grpcrouter/examples/myservice/gen/go/grpcrouter/v1"
+	myservice "github.com/panyam/grpcrouter/examples/myservice/gen/go/myservice/v1"
 )
 
 func main() {
@@ -65,7 +65,7 @@ func runDirectMode(service *myservice.MyServiceImpl, port, instanceID string) {
 
 	server := grpc.NewServer()
 	myservice.RegisterMyServiceServer(server, service)
-	
+
 	// Enable reflection for debugging
 	reflection.Register(server)
 
@@ -80,7 +80,7 @@ func runDirectMode(service *myservice.MyServiceImpl, port, instanceID string) {
 
 	// Wait for interrupt
 	waitForInterrupt()
-	
+
 	log.Printf("Shutting down instance %s...", instanceID)
 	server.GracefulStop()
 }
@@ -95,7 +95,7 @@ func runRouterMode(service *myservice.MyServiceImpl, routerAddr, instanceID, end
 	defer conn.Close()
 
 	client := pb.NewRouterClient(conn)
-	
+
 	log.Printf("MyService instance %s connecting to router at %s", instanceID, routerAddr)
 
 	// Create registration stream
@@ -111,12 +111,12 @@ func runRouterMode(service *myservice.MyServiceImpl, routerAddr, instanceID, end
 	registrationReq := &pb.RegisterRequest{
 		Request: &pb.RegisterRequest_InstanceInfo{
 			InstanceInfo: &pb.InstanceInfo{
-				InstanceId:   instanceID,
-				ServiceName:  "MyService",
-				Endpoint:     endpoint,
-				Metadata:     map[string]string{
-					"version": "1.0.0",
-					"region":  "local",
+				InstanceId:  instanceID,
+				ServiceName: "MyService",
+				Endpoint:    endpoint,
+				Metadata: map[string]string{
+					"version":     "1.0.0",
+					"region":      "local",
 					"routing_key": instanceID, // Use instance ID as routing key
 				},
 				HealthStatus: pb.HealthStatus_HEALTHY,
