@@ -215,13 +215,21 @@ Messages flow independently in both directions with sequence numbers
 ## Current Status
 
 ✅ Protobuf definitions with custom options
+
 ✅ Request correlation system  
+
 ✅ Service registry with instance management
+
 ✅ Generic router server implementation
+
 🟡 Protoc plugin for code generation (in progress)
+
 ⏳ Service-specific router generation
+
 ⏳ Dual-mode service wrapper
+
 ⏳ Example implementation
+
 ⏳ Integration tests
 
 ## Next Steps
