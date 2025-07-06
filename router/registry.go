@@ -1,11 +1,13 @@
 package router
 
 import (
-	"errors"
 	"fmt"
 	"hash/fnv"
 	"sync"
 	"time"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	pb "github.com/panyam/grpcrouter/proto/gen/go/grpcrouter/v1"
 )
@@ -47,12 +49,24 @@ func (sr *ServiceRegistry) RegisterInstance(instance *ServiceInstance) error {
 	sr.services[instance.ServiceName][instance.InstanceID] = instance
 
 	// Register by routing key (if provided in metadata)
+	fmt.Printf("DEBUG: Registering instance '%s' with metadata: %v\n", instance.InstanceID, instance.Metadata)
 	if routingKey, exists := instance.Metadata["routing_key"]; exists {
+		fmt.Printf("DEBUG: Found routing_key '%s' for instance '%s'\n", routingKey, instance.InstanceID)
 		if sr.routing[instance.ServiceName] == nil {
 			sr.routing[instance.ServiceName] = make(map[string][]*ServiceInstance)
 		}
-		sr.routing[instance.ServiceName][routingKey] = append(
-			sr.routing[instance.ServiceName][routingKey], instance)
+
+		// Check if routing key already exists for this service
+		if existingInstances, exists := sr.routing[instance.ServiceName][routingKey]; exists && len(existingInstances) > 0 {
+			return status.Errorf(codes.AlreadyExists, "routing key '%s' already exists for service '%s' (instance: %s)",
+				routingKey, instance.ServiceName, existingInstances[0].InstanceID)
+		}
+
+		// Register as the single instance for this routing key
+		sr.routing[instance.ServiceName][routingKey] = []*ServiceInstance{instance}
+		fmt.Printf("DEBUG: Successfully registered routing key '%s' for service '%s'\n", routingKey, instance.ServiceName)
+	} else {
+		fmt.Printf("DEBUG: No routing_key found in metadata for instance '%s'\n", instance.InstanceID)
 	}
 
 	return nil
@@ -152,32 +166,41 @@ func (sr *ServiceRegistry) SelectInstance(serviceName, routingKey string) (*Serv
 	sr.mu.RLock()
 	defer sr.mu.RUnlock()
 
-	// If routing key is provided, try to find instances with that key
+	// Debug logging
+	fmt.Printf("DEBUG: SelectInstance called with serviceName='%s', routingKey='%s'\n", serviceName, routingKey)
+	if routingMap, exists := sr.routing[serviceName]; exists {
+		fmt.Printf("DEBUG: Available routing keys for service '%s': %v\n", serviceName, getKeys(routingMap))
+	} else {
+		fmt.Printf("DEBUG: No routing map found for service '%s'\n", serviceName)
+	}
+
+	// If routing key is provided, find the exact instance with that key
 	if routingKey != "" {
 		if routingMap, exists := sr.routing[serviceName]; exists {
-			if instances, exists := routingMap[routingKey]; exists {
-				healthyInstances := sr.filterHealthyInstances(instances)
-				if len(healthyInstances) > 0 {
-					return sr.selectByStrategy(healthyInstances, routingKey), nil
+			if instances, exists := routingMap[routingKey]; exists && len(instances) > 0 {
+				instance := instances[0] // Should only be one instance per routing key
+				fmt.Printf("DEBUG: Found instance '%s' for routing key '%s', healthy=%t, connected=%t\n",
+					instance.InstanceID, routingKey, instance.HealthStatus == pb.HealthStatus_HEALTHY, instance.Connected)
+				if instance.HealthStatus == pb.HealthStatus_HEALTHY && instance.Connected {
+					return instance, nil
 				}
+				return nil, status.Errorf(codes.Unavailable, "instance for routing key '%s' is unhealthy", routingKey)
 			}
 		}
+		return nil, status.Errorf(codes.NotFound, "no instance found for routing key '%s'", routingKey)
 	}
 
-	// Fall back to any healthy instance for the service
-	if serviceInstances, exists := sr.services[serviceName]; exists {
-		var allInstances []*ServiceInstance
-		for _, instance := range serviceInstances {
-			allInstances = append(allInstances, instance)
-		}
+	// For empty routing key, return NotFound (no fallback load balancing in v1)
+	return nil, status.Errorf(codes.InvalidArgument, "routing key is required")
+}
 
-		healthyInstances := sr.filterHealthyInstances(allInstances)
-		if len(healthyInstances) > 0 {
-			return sr.selectByStrategy(healthyInstances, routingKey), nil
-		}
+// Helper function to get map keys for debugging
+func getKeys(m map[string][]*ServiceInstance) []string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
 	}
-
-	return nil, errors.New("no healthy instances available")
+	return keys
 }
 
 // filterHealthyInstances filters instances by health status

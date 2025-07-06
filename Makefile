@@ -16,13 +16,9 @@ install-deps:
 	go mod tidy
 
 # Generate protobuf code
-proto: $(PROTO_FILES) $(EXAMPLE_PROTO_FILES)
-	protoc --go_out=. --go_opt=paths=source_relative \
-		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
-		$(PROTO_FILES)
-	protoc --go_out=. --go_opt=paths=source_relative \
-		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
-		$(EXAMPLE_PROTO_FILES)
+proto:
+	cd proto && buf generate
+	cd examples/myservice && buf generate
 
 # Build the project
 build: proto
@@ -54,14 +50,6 @@ lint:
 # Run example service
 run-example: build
 	go run examples/myservice/main.go
-
-# Run router service
-run-router: build
-	go run cmd/router/main.go
-
-# Build router binary
-build-router: proto
-	go build -o bin/grpcrouter cmd/router/main.go
 
 # Build example service binary
 build-example: proto

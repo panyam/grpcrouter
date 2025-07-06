@@ -159,7 +159,7 @@ func runServerStreamingTests(directAddr, routerAddr string) {
 		return
 	}
 
-	for i := 0; i < len(directResponses); i++ {
+	for i := range len(directResponses) {
 		if directResponses[i].Item != routerResponses[i].Item {
 			log.Printf("❌ Stream item mismatch at index %d", i)
 			return
@@ -332,7 +332,7 @@ func runLoadBalancingTests(routerAddr string) {
 	instanceCounts := make(map[string]int)
 	totalCalls := 20
 
-	for i := 0; i < totalCalls; i++ {
+	for i := range totalCalls {
 		ctx := context.Background()
 		req := &myservice.Method1Request{
 			Data:  fmt.Sprintf("load-test-%d", i),
@@ -370,14 +370,14 @@ func runRoutingConsistencyTests(routerAddr string) {
 	defer client.Close()
 
 	// Test with routing key
-	routingKey := "user-123"
+	routingKey := "srv1"
 	md := metadata.Pairs("instanceid", routingKey)
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
 
 	var firstInstanceID string
 	consistentCalls := 10
 
-	for i := 0; i < consistentCalls; i++ {
+	for i := range consistentCalls {
 		req := &myservice.Method1Request{
 			Data:  fmt.Sprintf("consistent-test-%d", i),
 			Value: int32(i),

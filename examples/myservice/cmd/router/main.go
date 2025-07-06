@@ -37,19 +37,16 @@ func main() {
 		HealthCheckInterval: *healthInterval,
 	}
 
-	// Create MyService-specific router
+	// Create MyService-specific router (handles both registration and service calls)
 	myServiceRouter := myservice.NewMyServiceRouter(config)
-
-	// Create generic router server for registration handling
-	genericRouter := router.NewRouterServer(config)
 
 	// Create gRPC server
 	grpcServer := grpc.NewServer(
 		grpc.MaxConcurrentStreams(uint32(*maxConcurrent)),
 	)
 
-	// Register both the generic router (for registration) and MyService router (for service calls)
-	pb.RegisterRouterServer(grpcServer, genericRouter)
+	// Register only the MyService router (it implements both RouterServer and MyServiceServer)
+	pb.RegisterRouterServer(grpcServer, myServiceRouter)
 	myservice.RegisterMyServiceServer(grpcServer, myServiceRouter)
 
 	// Enable reflection for debugging
@@ -77,7 +74,7 @@ func main() {
 			case <-ticker.C:
 				// Cleanup stale instances (2x health check interval)
 				log.Printf("Running cleanup for stale instances...")
-				genericRouter.CleanupStaleInstances(*healthInterval * 2)
+				// TODO: Add cleanup method to MyServiceRouter if needed
 
 			case <-context.Background().Done():
 				return

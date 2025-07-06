@@ -7,6 +7,7 @@ import (
 	"context"
 	"io"
 	"log"
+	"sync"
 	"time"
 
 	"google.golang.org/grpc/codes"
@@ -21,10 +22,16 @@ import (
 // MyServiceRouter implements MyService interface with routing capabilities
 type MyServiceRouter struct {
 	UnimplementedMyServiceServer
-	correlator   *router.RequestCorrelator
-	registry     *router.ServiceRegistry
-	config       *router.RouterConfig
-	routerServer *router.RouterServer
+	pb.UnimplementedRouterServer
+
+	// Core routing components
+	correlator *router.RequestCorrelator
+	registry   *router.ServiceRegistry
+	config     *router.RouterConfig
+
+	// Service instance management
+	instances    map[string]*router.ServiceInstance
+	instancesMux sync.RWMutex
 }
 
 // NewMyServiceRouter creates a new MyService router
@@ -36,19 +43,88 @@ func NewMyServiceRouter(config *router.RouterConfig) *MyServiceRouter {
 			HealthCheckInterval: 30 * time.Second,
 		}
 	}
-	routerServer := router.NewRouterServer(config)
 	return &MyServiceRouter{
-		correlator:   router.NewRequestCorrelator(),
-		registry:     router.NewServiceRegistry(),
-		config:       config,
-		routerServer: routerServer,
+		correlator: router.NewRequestCorrelator(),
+		registry:   router.NewServiceRegistry(),
+		config:     config,
+		instances:  make(map[string]*router.ServiceInstance),
 	}
 }
 
 // Register handles service instance registration
 func (r *MyServiceRouter) Register(stream pb.Router_RegisterServer) error {
-	// Use the shared router server logic
-	return r.routerServer.Register(stream)
+	log.Println("Did we come here????")
+	// Wait for initial registration message
+	req, err := stream.Recv()
+	if err != nil {
+		return status.Errorf(codes.Internal, "failed to receive registration: %v", err)
+	}
+
+	// Extract instance info
+	instanceMsg := req.GetInstanceInfo()
+	if instanceMsg == nil {
+	log.Println("2. Did we come here????")
+		return status.Errorf(codes.InvalidArgument, "expected instance info in first message")
+	}
+
+	// Validate service name
+	if instanceMsg.ServiceName != "MyService" {
+	log.Println("3. Did we come here????")
+		return status.Errorf(codes.InvalidArgument, "service name mismatch: expected MyService, got %s", instanceMsg.ServiceName)
+	}
+
+	log.Println("4. and Did we come here????")
+	// Create service instance
+	instance := &router.ServiceInstance{
+		InstanceID:    instanceMsg.InstanceId,
+		ServiceName:   instanceMsg.ServiceName,
+		Endpoint:      instanceMsg.Endpoint,
+		Metadata:      instanceMsg.Metadata,
+		HealthStatus:  instanceMsg.HealthStatus,
+		RegisteredAt:  time.Now(),
+		LastHeartbeat: time.Now(),
+		Stream:        stream,
+		RequestQueue:  make(chan *pb.RpcCall, 100),
+		ResponseQueue: make(chan *pb.RpcResponse, 100),
+		Connected:     true,
+	}
+
+	// Register instance
+	r.instancesMux.Lock()
+	r.instances[instanceMsg.InstanceId] = instance
+	r.instancesMux.Unlock()
+
+	if err := r.registry.RegisterInstance(instance); err != nil {
+		r.instancesMux.Lock()
+		delete(r.instances, instanceMsg.InstanceId)
+		r.instancesMux.Unlock()
+		return status.Errorf(codes.AlreadyExists, "failed to register instance: %v", err)
+	}
+
+	// Send registration acknowledgment
+	ack := &pb.RegisterResponse{
+		Response: &pb.RegisterResponse_Ack{
+			Ack: &pb.RegistrationAck{
+				InstanceId: instanceMsg.InstanceId,
+				Success:    true,
+				Message:    "Registration successful",
+			},
+		},
+	}
+
+	if err := stream.Send(ack); err != nil {
+		r.unregisterInstance(instanceMsg.InstanceId)
+		return status.Errorf(codes.Internal, "failed to send acknowledgment: %v", err)
+	}
+
+	log.Printf("Service instance registered: %s (MyService)", instanceMsg.InstanceId)
+
+	// Start instance handling goroutines
+	go r.handleInstanceRequests(instance)
+	go r.handleInstanceResponses(instance)
+
+	// Handle incoming messages from the instance
+	return r.handleInstanceMessages(instance)
 }
 
 // Method1 implements the Method1 method with routing
@@ -285,16 +361,124 @@ func (r *MyServiceRouter) extractRoutingKey(ctx context.Context, req interface{}
 
 // routeRPC routes an RPC call to an appropriate service instance
 func (r *MyServiceRouter) routeRPC(ctx context.Context, serviceName, method string, methodType pb.RpcMethodType, request *anypb.Any, routingKey string) (*router.PendingCall, error) {
-	// Use the shared router server to handle the routing
-	return r.routerServer.RouteRPC(ctx, serviceName, method, methodType, request, nil, routingKey)
+	// Find appropriate instance
+	instance, err := r.registry.SelectInstance(serviceName, routingKey)
+	if err != nil {
+		return nil, status.Errorf(codes.Unavailable, "no available instance for service %s: %v", serviceName, err)
+	}
+
+	// Create pending call
+	call := r.correlator.CreatePendingCall(ctx, method, methodType, r.config.DefaultTimeout)
+
+	// Create RPC call message
+	rpcCall := &pb.RpcCall{
+		RequestId:  call.RequestID,
+		Method:     method,
+		MethodType: methodType,
+		Payload:    &pb.RpcCall_Request{Request: request},
+		Metadata:   make(map[string]string),
+	}
+
+	// Send RPC call to instance
+	select {
+	case instance.RequestQueue <- rpcCall:
+		return call, nil
+	case <-ctx.Done():
+		r.correlator.CompletePendingCall(call.RequestID, ctx.Err())
+		return nil, ctx.Err()
+	default:
+		r.correlator.CompletePendingCall(call.RequestID, nil)
+		return nil, status.Errorf(codes.ResourceExhausted, "request queue full for instance %s", instance.InstanceID)
+	}
 }
 
 // sendStreamMessage sends a stream message for an active RPC call
 func (r *MyServiceRouter) sendStreamMessage(requestID string, message *anypb.Any, control pb.StreamControl) error {
-	return r.routerServer.SendStreamMessage(requestID, message, control)
+	// TODO: Implement stream message sending
+	return nil
 }
 
 // sendStreamControl sends a stream control signal
 func (r *MyServiceRouter) sendStreamControl(requestID string, control pb.StreamControl) error {
 	return r.sendStreamMessage(requestID, nil, control)
+}
+
+// unregisterInstance removes an instance from the router
+func (r *MyServiceRouter) unregisterInstance(instanceID string) {
+	r.instancesMux.Lock()
+	delete(r.instances, instanceID)
+	r.instancesMux.Unlock()
+	r.registry.UnregisterInstance(instanceID)
+}
+
+// handleInstanceMessages processes incoming messages from a service instance
+func (r *MyServiceRouter) handleInstanceMessages(instance *router.ServiceInstance) error {
+	defer func() {
+		r.unregisterInstance(instance.InstanceID)
+		log.Printf("Service instance disconnected: %s", instance.InstanceID)
+	}()
+
+	for {
+		req, err := instance.Stream.Recv()
+		if err != nil {
+			return err
+		}
+
+		switch msg := req.Request.(type) {
+		case *pb.RegisterRequest_Heartbeat:
+			r.handleHeartbeat(instance, msg.Heartbeat)
+		case *pb.RegisterRequest_RpcResponse:
+			r.handleRpcResponse(instance, msg.RpcResponse)
+		}
+	}
+}
+
+// handleInstanceRequests sends RPC requests to the service instance
+func (r *MyServiceRouter) handleInstanceRequests(instance *router.ServiceInstance) {
+	for {
+		select {
+		case <-instance.Stream.Context().Done():
+			return
+		case rpcCall := <-instance.RequestQueue:
+			response := &pb.RegisterResponse{
+				Response: &pb.RegisterResponse_RpcCall{
+					RpcCall: rpcCall,
+				},
+			}
+			if err := instance.Stream.Send(response); err != nil {
+				log.Printf("Failed to send RPC call to instance %s: %v", instance.InstanceID, err)
+				return
+			}
+		}
+	}
+}
+
+// handleInstanceResponses processes RPC responses from the service instance
+func (r *MyServiceRouter) handleInstanceResponses(instance *router.ServiceInstance) {
+	for {
+		select {
+		case <-instance.Stream.Context().Done():
+			return
+		case rpcResponse := <-instance.ResponseQueue:
+			if err := r.correlator.HandleResponse(rpcResponse); err != nil {
+				log.Printf("Failed to handle RPC response: %v", err)
+			}
+		}
+	}
+}
+
+// handleHeartbeat processes heartbeat messages from service instances
+func (r *MyServiceRouter) handleHeartbeat(instance *router.ServiceInstance, heartbeat *pb.Heartbeat) {
+	instance.LastHeartbeat = time.Now()
+	instance.HealthStatus = heartbeat.HealthStatus
+	r.registry.UpdateInstanceHealth(instance.InstanceID, heartbeat.HealthStatus)
+}
+
+// handleRpcResponse processes RPC responses from service instances
+func (r *MyServiceRouter) handleRpcResponse(instance *router.ServiceInstance, response *pb.RpcResponse) {
+	select {
+	case instance.ResponseQueue <- response:
+	default:
+		log.Printf("Response queue full for instance %s", instance.InstanceID)
+	}
 }
