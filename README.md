@@ -2,7 +2,7 @@
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/panyam/grpcrouter)
 [![Go Version](https://img.shields.io/badge/go-1.21+-blue.svg)](https://golang.org/)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-GPL-blue.svg)](LICENSE)
 
 A sophisticated gRPC routing system that generates type-safe, service-specific routers with **zero manual translation code**. Enable seamless service routing through firewalls and network boundaries using persistent bidirectional streams.
 
@@ -387,7 +387,7 @@ config := &router.RouterConfig{
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the GPL License - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
