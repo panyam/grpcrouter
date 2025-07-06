@@ -18,7 +18,7 @@ A sophisticated gRPC routing system that generates type-safe, service-specific r
 
 ## 🏗️ Architecture Overview
 
-### Revolutionary Auto-Generation Pipeline
+### Auto-Generation Pipeline
 
 ```mermaid
 graph TD
