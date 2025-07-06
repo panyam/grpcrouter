@@ -10,22 +10,22 @@ import (
 
 func main() {
 	var flags flag.FlagSet
-	
+
 	protogen.Options{
 		ParamFunc: flags.Set,
 	}.Run(func(gen *protogen.Plugin) error {
 		gen.SupportedFeatures = uint64(pluginpb.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL)
-		
+
 		for _, f := range gen.Files {
 			if !f.Generate {
 				continue
 			}
-			
+
 			if err := generateFile(gen, f); err != nil {
 				return err
 			}
 		}
-		
+
 		return nil
 	})
 }
@@ -39,18 +39,18 @@ func generateFile(gen *protogen.Plugin, file *protogen.File) error {
 			break
 		}
 	}
-	
+
 	if !hasRoutedServices {
 		return nil
 	}
-	
+
 	// Generate router file
 	filename := file.GeneratedFilenamePrefix + "_router.pb.go"
 	g := gen.NewGeneratedFile(filename, file.GoImportPath)
-	
+
 	// Generate file header
 	generateHeader(g, file)
-	
+
 	// Generate router for each service
 	for _, service := range file.Services {
 		if hasRoutingAnnotation(service) {
@@ -59,7 +59,7 @@ func generateFile(gen *protogen.Plugin, file *protogen.File) error {
 			}
 		}
 	}
-	
+
 	return nil
 }
 
@@ -81,7 +81,7 @@ func generateHeader(g *protogen.GeneratedFile, file *protogen.File) {
 	g.P("  \"google.golang.org/protobuf/types/known/anypb\"")
 	g.P()
 	g.P("  \"github.com/panyam/grpcrouter/router\"")
-	g.P("  pb \"github.com/panyam/grpcrouter/proto\"")
+	g.P("  pb \"github.com/panyam/grpcrouter/proto/gen/go/grpcrouter/v1\"")
 	g.P(")")
 	g.P()
 }
@@ -89,7 +89,7 @@ func generateHeader(g *protogen.GeneratedFile, file *protogen.File) {
 func generateServiceRouter(g *protogen.GeneratedFile, service *protogen.Service) error {
 	serviceName := service.GoName
 	routerName := serviceName + "Router"
-	
+
 	// Generate router struct
 	g.P("// ", routerName, " implements ", serviceName, " interface with routing capabilities")
 	g.P("type ", routerName, " struct {")
@@ -98,7 +98,7 @@ func generateServiceRouter(g *protogen.GeneratedFile, service *protogen.Service)
 	g.P("  config     *router.RouterConfig")
 	g.P("}")
 	g.P()
-	
+
 	// Generate constructor
 	g.P("// New", routerName, " creates a new ", serviceName, " router")
 	g.P("func New", routerName, "(config *router.RouterConfig) *", routerName, " {")
@@ -116,7 +116,7 @@ func generateServiceRouter(g *protogen.GeneratedFile, service *protogen.Service)
 	g.P("  }")
 	g.P("}")
 	g.P()
-	
+
 	// Generate Register method for service instances
 	g.P("// Register handles service instance registration")
 	g.P("func (r *", routerName, ") Register(stream pb.Router_RegisterServer) error {")
@@ -125,17 +125,17 @@ func generateServiceRouter(g *protogen.GeneratedFile, service *protogen.Service)
 	g.P("  return routerServer.Register(stream)")
 	g.P("}")
 	g.P()
-	
+
 	// Generate method implementations
 	for _, method := range service.Methods {
 		if err := generateMethodHandler(g, serviceName, routerName, method); err != nil {
 			return err
 		}
 	}
-	
+
 	// Generate helper methods
 	generateHelperMethods(g, serviceName, routerName)
-	
+
 	return nil
 }
 
@@ -143,11 +143,11 @@ func generateMethodHandler(g *protogen.GeneratedFile, serviceName, routerName st
 	methodName := method.GoName
 	inputType := method.Input.GoIdent.GoName
 	outputType := method.Output.GoIdent.GoName
-	
+
 	// Determine method type
 	clientStreaming := method.Desc.IsStreamingClient()
 	serverStreaming := method.Desc.IsStreamingServer()
-	
+
 	var methodType string
 	switch {
 	case !clientStreaming && !serverStreaming:
@@ -159,7 +159,7 @@ func generateMethodHandler(g *protogen.GeneratedFile, serviceName, routerName st
 	case clientStreaming && serverStreaming:
 		methodType = "pb.RpcMethodType_BIDIRECTIONAL_STREAMING"
 	}
-	
+
 	// Generate method implementation based on type
 	switch {
 	case !clientStreaming && !serverStreaming:
@@ -196,7 +196,7 @@ func generateMethodHandler(g *protogen.GeneratedFile, serviceName, routerName st
 		g.P("  }")
 		g.P("}")
 		g.P()
-		
+
 	case !clientStreaming && serverStreaming:
 		// Server streaming RPC
 		g.P("// ", methodName, " implements the ", methodName, " method with routing")
@@ -238,7 +238,7 @@ func generateMethodHandler(g *protogen.GeneratedFile, serviceName, routerName st
 		g.P("  }")
 		g.P("}")
 		g.P()
-		
+
 	case clientStreaming && !serverStreaming:
 		// Client streaming RPC
 		g.P("// ", methodName, " implements the ", methodName, " method with routing")
@@ -305,7 +305,7 @@ func generateMethodHandler(g *protogen.GeneratedFile, serviceName, routerName st
 		g.P("  }")
 		g.P("}")
 		g.P()
-		
+
 	case clientStreaming && serverStreaming:
 		// Bidirectional streaming RPC
 		g.P("// ", methodName, " implements the ", methodName, " method with routing")
@@ -394,7 +394,7 @@ func generateMethodHandler(g *protogen.GeneratedFile, serviceName, routerName st
 		g.P("}")
 		g.P()
 	}
-	
+
 	return nil
 }
 
@@ -412,7 +412,7 @@ func generateHelperMethods(g *protogen.GeneratedFile, serviceName, routerName st
 	g.P("  return \"\"")
 	g.P("}")
 	g.P()
-	
+
 	// Generate routeRPC method
 	g.P("// routeRPC routes an RPC call to an appropriate service instance")
 	g.P("func (r *", routerName, ") routeRPC(ctx context.Context, serviceName, method string, methodType pb.RpcMethodType, request *anypb.Any, routingKey string) (*router.PendingCall, error) {")
@@ -421,7 +421,7 @@ func generateHelperMethods(g *protogen.GeneratedFile, serviceName, routerName st
 	g.P("  return routerServer.RouteRPC(ctx, serviceName, method, methodType, request, nil, routingKey)")
 	g.P("}")
 	g.P()
-	
+
 	// Generate sendStreamMessage method
 	g.P("// sendStreamMessage sends a stream message for an active RPC call")
 	g.P("func (r *", routerName, ") sendStreamMessage(requestID string, message *anypb.Any, control pb.StreamControl) error {")
@@ -429,7 +429,7 @@ func generateHelperMethods(g *protogen.GeneratedFile, serviceName, routerName st
 	g.P("  return routerServer.SendStreamMessage(requestID, message, control)")
 	g.P("}")
 	g.P()
-	
+
 	// Generate sendStreamControl method
 	g.P("// sendStreamControl sends a stream control signal")
 	g.P("func (r *", routerName, ") sendStreamControl(requestID string, control pb.StreamControl) error {")

@@ -7,15 +7,15 @@ import (
 	"sync"
 	"time"
 
-	pb "github.com/panyam/grpcrouter/proto"
+	pb "github.com/panyam/grpcrouter/proto/gen/go/grpcrouter/v1"
 )
 
 // ServiceRegistry manages service instances and provides routing capabilities
 type ServiceRegistry struct {
 	mu        sync.RWMutex
-	instances map[string]*ServiceInstance                    // instanceID -> instance
-	services  map[string]map[string]*ServiceInstance         // serviceName -> instanceID -> instance
-	routing   map[string]map[string][]*ServiceInstance       // serviceName -> routingKey -> instances
+	instances map[string]*ServiceInstance              // instanceID -> instance
+	services  map[string]map[string]*ServiceInstance   // serviceName -> instanceID -> instance
+	routing   map[string]map[string][]*ServiceInstance // serviceName -> routingKey -> instances
 }
 
 // NewServiceRegistry creates a new service registry
@@ -31,21 +31,21 @@ func NewServiceRegistry() *ServiceRegistry {
 func (sr *ServiceRegistry) RegisterInstance(instance *ServiceInstance) error {
 	sr.mu.Lock()
 	defer sr.mu.Unlock()
-	
+
 	// Check if instance already exists
 	if _, exists := sr.instances[instance.InstanceID]; exists {
 		return fmt.Errorf("instance %s already registered", instance.InstanceID)
 	}
-	
+
 	// Register the instance
 	sr.instances[instance.InstanceID] = instance
-	
+
 	// Register by service name
 	if sr.services[instance.ServiceName] == nil {
 		sr.services[instance.ServiceName] = make(map[string]*ServiceInstance)
 	}
 	sr.services[instance.ServiceName][instance.InstanceID] = instance
-	
+
 	// Register by routing key (if provided in metadata)
 	if routingKey, exists := instance.Metadata["routing_key"]; exists {
 		if sr.routing[instance.ServiceName] == nil {
@@ -54,7 +54,7 @@ func (sr *ServiceRegistry) RegisterInstance(instance *ServiceInstance) error {
 		sr.routing[instance.ServiceName][routingKey] = append(
 			sr.routing[instance.ServiceName][routingKey], instance)
 	}
-	
+
 	return nil
 }
 
@@ -62,15 +62,15 @@ func (sr *ServiceRegistry) RegisterInstance(instance *ServiceInstance) error {
 func (sr *ServiceRegistry) UnregisterInstance(instanceID string) error {
 	sr.mu.Lock()
 	defer sr.mu.Unlock()
-	
+
 	instance, exists := sr.instances[instanceID]
 	if !exists {
 		return fmt.Errorf("instance %s not found", instanceID)
 	}
-	
+
 	// Remove from instances
 	delete(sr.instances, instanceID)
-	
+
 	// Remove from services
 	if serviceInstances, exists := sr.services[instance.ServiceName]; exists {
 		delete(serviceInstances, instanceID)
@@ -78,7 +78,7 @@ func (sr *ServiceRegistry) UnregisterInstance(instanceID string) error {
 			delete(sr.services, instance.ServiceName)
 		}
 	}
-	
+
 	// Remove from routing
 	if routingKey, exists := instance.Metadata["routing_key"]; exists {
 		if routingMap, exists := sr.routing[instance.ServiceName]; exists {
@@ -97,12 +97,12 @@ func (sr *ServiceRegistry) UnregisterInstance(instanceID string) error {
 			}
 		}
 	}
-	
+
 	// Cancel instance context
 	if instance.cancel != nil {
 		instance.cancel()
 	}
-	
+
 	return nil
 }
 
@@ -110,12 +110,12 @@ func (sr *ServiceRegistry) UnregisterInstance(instanceID string) error {
 func (sr *ServiceRegistry) GetInstance(instanceID string) (*ServiceInstance, error) {
 	sr.mu.RLock()
 	defer sr.mu.RUnlock()
-	
+
 	instance, exists := sr.instances[instanceID]
 	if !exists {
 		return nil, fmt.Errorf("instance %s not found", instanceID)
 	}
-	
+
 	return instance, nil
 }
 
@@ -123,9 +123,9 @@ func (sr *ServiceRegistry) GetInstance(instanceID string) (*ServiceInstance, err
 func (sr *ServiceRegistry) ListInstances(serviceName string, statusFilter pb.HealthStatus) []*ServiceInstance {
 	sr.mu.RLock()
 	defer sr.mu.RUnlock()
-	
+
 	var instances []*ServiceInstance
-	
+
 	if serviceName == "" {
 		// Return all instances
 		for _, instance := range sr.instances {
@@ -143,7 +143,7 @@ func (sr *ServiceRegistry) ListInstances(serviceName string, statusFilter pb.Hea
 			}
 		}
 	}
-	
+
 	return instances
 }
 
@@ -151,7 +151,7 @@ func (sr *ServiceRegistry) ListInstances(serviceName string, statusFilter pb.Hea
 func (sr *ServiceRegistry) SelectInstance(serviceName, routingKey string) (*ServiceInstance, error) {
 	sr.mu.RLock()
 	defer sr.mu.RUnlock()
-	
+
 	// If routing key is provided, try to find instances with that key
 	if routingKey != "" {
 		if routingMap, exists := sr.routing[serviceName]; exists {
@@ -163,20 +163,20 @@ func (sr *ServiceRegistry) SelectInstance(serviceName, routingKey string) (*Serv
 			}
 		}
 	}
-	
+
 	// Fall back to any healthy instance for the service
 	if serviceInstances, exists := sr.services[serviceName]; exists {
 		var allInstances []*ServiceInstance
 		for _, instance := range serviceInstances {
 			allInstances = append(allInstances, instance)
 		}
-		
+
 		healthyInstances := sr.filterHealthyInstances(allInstances)
 		if len(healthyInstances) > 0 {
 			return sr.selectByStrategy(healthyInstances, routingKey), nil
 		}
 	}
-	
+
 	return nil, errors.New("no healthy instances available")
 }
 
@@ -196,7 +196,7 @@ func (sr *ServiceRegistry) selectByStrategy(instances []*ServiceInstance, routin
 	if len(instances) == 1 {
 		return instances[0]
 	}
-	
+
 	// Use consistent hashing for routing key
 	if routingKey != "" {
 		hash := fnv.New32a()
@@ -204,7 +204,7 @@ func (sr *ServiceRegistry) selectByStrategy(instances []*ServiceInstance, routin
 		index := hash.Sum32() % uint32(len(instances))
 		return instances[index]
 	}
-	
+
 	// Simple round-robin based on timestamp
 	index := time.Now().UnixNano() % int64(len(instances))
 	return instances[index]
@@ -214,15 +214,15 @@ func (sr *ServiceRegistry) selectByStrategy(instances []*ServiceInstance, routin
 func (sr *ServiceRegistry) UpdateInstanceHealth(instanceID string, health pb.HealthStatus) error {
 	sr.mu.Lock()
 	defer sr.mu.Unlock()
-	
+
 	instance, exists := sr.instances[instanceID]
 	if !exists {
 		return fmt.Errorf("instance %s not found", instanceID)
 	}
-	
+
 	instance.HealthStatus = health
 	instance.LastHeartbeat = time.Now()
-	
+
 	return nil
 }
 
@@ -230,15 +230,15 @@ func (sr *ServiceRegistry) UpdateInstanceHealth(instanceID string, health pb.Hea
 func (sr *ServiceRegistry) GetServiceStats() map[string]ServiceStats {
 	sr.mu.RLock()
 	defer sr.mu.RUnlock()
-	
+
 	stats := make(map[string]ServiceStats)
-	
+
 	for serviceName, instances := range sr.services {
 		stat := ServiceStats{
 			ServiceName:    serviceName,
 			TotalInstances: len(instances),
 		}
-		
+
 		for _, instance := range instances {
 			switch instance.HealthStatus {
 			case pb.HealthStatus_HEALTHY:
@@ -253,10 +253,10 @@ func (sr *ServiceRegistry) GetServiceStats() map[string]ServiceStats {
 				stat.UnknownInstances++
 			}
 		}
-		
+
 		stats[serviceName] = stat
 	}
-	
+
 	return stats
 }
 
@@ -275,16 +275,16 @@ type ServiceStats struct {
 func (sr *ServiceRegistry) CleanupStaleInstances(timeout time.Duration) {
 	sr.mu.Lock()
 	defer sr.mu.Unlock()
-	
+
 	now := time.Now()
 	var staleInstances []string
-	
+
 	for instanceID, instance := range sr.instances {
 		if now.Sub(instance.LastHeartbeat) > timeout {
 			staleInstances = append(staleInstances, instanceID)
 		}
 	}
-	
+
 	// Remove stale instances (unlock to avoid deadlock)
 	sr.mu.Unlock()
 	for _, instanceID := range staleInstances {

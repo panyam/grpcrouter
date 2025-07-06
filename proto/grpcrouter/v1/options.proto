@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package grpcrouter;
+package grpcrouter.v1;
 
-option go_package = "github.com/panyam/grpcrouter/proto";
+option go_package = "github.com/panyam/grpcrouter/proto/gen/go/grpcrouter/v1";
 
 import "google/protobuf/descriptor.proto";
 

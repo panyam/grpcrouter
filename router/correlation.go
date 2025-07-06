@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/anypb"
 
-	pb "github.com/panyam/grpcrouter/proto"
+	pb "github.com/panyam/grpcrouter/proto/gen/go/grpcrouter/v1"
 )
 
 // RequestCorrelator manages pending RPC requests across the gateway
@@ -21,24 +21,24 @@ type RequestCorrelator struct {
 
 // PendingCall represents an active RPC call waiting for response
 type PendingCall struct {
-	RequestID    string
-	Method       string
-	MethodType   pb.RpcMethodType
-	Context      context.Context
-	Cancel       context.CancelFunc
-	CreatedAt    time.Time
-	Timeout      time.Duration
-	
+	RequestID  string
+	Method     string
+	MethodType pb.RpcMethodType
+	Context    context.Context
+	Cancel     context.CancelFunc
+	CreatedAt  time.Time
+	Timeout    time.Duration
+
 	// Response channels for different RPC types
-	ResponseChan     chan *anypb.Any           // For unary and client streaming
-	StreamChan       chan *pb.StreamMessage    // For server and bidirectional streaming
-	StatusChan       chan *pb.RpcStatus        // For completion status
-	ErrorChan        chan error                // For errors
-	
+	ResponseChan chan *anypb.Any        // For unary and client streaming
+	StreamChan   chan *pb.StreamMessage // For server and bidirectional streaming
+	StatusChan   chan *pb.RpcStatus     // For completion status
+	ErrorChan    chan error             // For errors
+
 	// Stream state management
-	ClientStreamDone bool                      // Client finished sending
-	ServerStreamDone bool                      // Server finished sending
-	StreamSequence   int64                     // Next expected sequence number
+	ClientStreamDone bool  // Client finished sending
+	ServerStreamDone bool  // Server finished sending
+	StreamSequence   int64 // Next expected sequence number
 }
 
 // NewRequestCorrelator creates a new request correlator
@@ -58,30 +58,30 @@ func (rc *RequestCorrelator) CreatePendingCall(
 ) *PendingCall {
 	rc.mu.Lock()
 	defer rc.mu.Unlock()
-	
+
 	requestID := rc.idGenerator()
 	callCtx, cancel := context.WithTimeout(ctx, timeout)
-	
+
 	call := &PendingCall{
-		RequestID:     requestID,
-		Method:        method,
-		MethodType:    methodType,
-		Context:       callCtx,
-		Cancel:        cancel,
-		CreatedAt:     time.Now(),
-		Timeout:       timeout,
-		ResponseChan:  make(chan *anypb.Any, 1),
-		StreamChan:    make(chan *pb.StreamMessage, 100), // Buffer for streaming
-		StatusChan:    make(chan *pb.RpcStatus, 1),
-		ErrorChan:     make(chan error, 1),
+		RequestID:      requestID,
+		Method:         method,
+		MethodType:     methodType,
+		Context:        callCtx,
+		Cancel:         cancel,
+		CreatedAt:      time.Now(),
+		Timeout:        timeout,
+		ResponseChan:   make(chan *anypb.Any, 1),
+		StreamChan:     make(chan *pb.StreamMessage, 100), // Buffer for streaming
+		StatusChan:     make(chan *pb.RpcStatus, 1),
+		ErrorChan:      make(chan error, 1),
 		StreamSequence: 1,
 	}
-	
+
 	rc.pendingCalls[requestID] = call
-	
+
 	// Start timeout handler
 	go rc.handleTimeout(call)
-	
+
 	return call
 }
 
@@ -89,7 +89,7 @@ func (rc *RequestCorrelator) CreatePendingCall(
 func (rc *RequestCorrelator) GetPendingCall(requestID string) (*PendingCall, bool) {
 	rc.mu.RLock()
 	defer rc.mu.RUnlock()
-	
+
 	call, exists := rc.pendingCalls[requestID]
 	return call, exists
 }
@@ -100,7 +100,7 @@ func (rc *RequestCorrelator) HandleResponse(response *pb.RpcResponse) error {
 	if !exists {
 		return status.Errorf(codes.NotFound, "pending call not found: %s", response.RequestId)
 	}
-	
+
 	// Check if call context is still valid
 	select {
 	case <-call.Context.Done():
@@ -108,7 +108,7 @@ func (rc *RequestCorrelator) HandleResponse(response *pb.RpcResponse) error {
 		return call.Context.Err()
 	default:
 	}
-	
+
 	// Handle different payload types
 	switch payload := response.Payload.(type) {
 	case *pb.RpcResponse_Response:
@@ -118,14 +118,14 @@ func (rc *RequestCorrelator) HandleResponse(response *pb.RpcResponse) error {
 		case <-call.Context.Done():
 			return call.Context.Err()
 		}
-		
+
 	case *pb.RpcResponse_StreamMessage:
 		// Stream message (server or bidirectional streaming)
 		if err := rc.handleStreamMessage(call, payload.StreamMessage); err != nil {
 			return err
 		}
 	}
-	
+
 	// Handle status if present
 	if response.Status != nil {
 		if response.Status.Code != 0 {
@@ -142,14 +142,14 @@ func (rc *RequestCorrelator) HandleResponse(response *pb.RpcResponse) error {
 			case call.StatusChan <- response.Status:
 			case <-call.Context.Done():
 			}
-			
+
 			// For unary and client streaming, completion means we're done
 			if call.MethodType == pb.RpcMethodType_UNARY || call.MethodType == pb.RpcMethodType_CLIENT_STREAMING {
 				rc.CompletePendingCall(response.RequestId, nil)
 			}
 		}
 	}
-	
+
 	return nil
 }
 
@@ -163,18 +163,18 @@ func (rc *RequestCorrelator) handleStreamMessage(call *PendingCall, msg *pb.Stre
 		case <-call.Context.Done():
 			return call.Context.Err()
 		}
-		
+
 	case pb.StreamControl_HALF_CLOSE:
 		// Server finished sending
 		call.ServerStreamDone = true
 		close(call.StreamChan)
-		
+
 	case pb.StreamControl_COMPLETE:
 		// Stream completed successfully
 		call.ServerStreamDone = true
 		close(call.StreamChan)
 		rc.CompletePendingCall(call.RequestID, nil)
-		
+
 	case pb.StreamControl_ERROR:
 		// Stream error
 		close(call.StreamChan)
@@ -185,7 +185,7 @@ func (rc *RequestCorrelator) handleStreamMessage(call *PendingCall, msg *pb.Stre
 		}
 		rc.CompletePendingCall(call.RequestID, err)
 	}
-	
+
 	return nil
 }
 
@@ -193,15 +193,15 @@ func (rc *RequestCorrelator) handleStreamMessage(call *PendingCall, msg *pb.Stre
 func (rc *RequestCorrelator) CompletePendingCall(requestID string, err error) {
 	rc.mu.Lock()
 	defer rc.mu.Unlock()
-	
+
 	call, exists := rc.pendingCalls[requestID]
 	if !exists {
 		return
 	}
-	
+
 	// Cancel the context
 	call.Cancel()
-	
+
 	// Close channels
 	close(call.ResponseChan)
 	close(call.StatusChan)
@@ -209,7 +209,7 @@ func (rc *RequestCorrelator) CompletePendingCall(requestID string, err error) {
 	if !call.ServerStreamDone {
 		close(call.StreamChan)
 	}
-	
+
 	// Remove from pending calls
 	delete(rc.pendingCalls, requestID)
 }
@@ -217,7 +217,7 @@ func (rc *RequestCorrelator) CompletePendingCall(requestID string, err error) {
 // handleTimeout handles request timeouts
 func (rc *RequestCorrelator) handleTimeout(call *PendingCall) {
 	<-call.Context.Done()
-	
+
 	if call.Context.Err() == context.DeadlineExceeded {
 		rc.CompletePendingCall(call.RequestID, context.DeadlineExceeded)
 	}

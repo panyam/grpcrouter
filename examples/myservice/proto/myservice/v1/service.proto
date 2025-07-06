@@ -1,14 +1,14 @@
 syntax = "proto3";
 
-package myservice;
+package myservice.v1;
 
-option go_package = "github.com/panyam/grpcrouter/examples/myservice";
+option go_package = "github.com/panyam/grpcrouter/examples/myservice/v1";
 
-import "proto/options.proto";
+import "grpcrouter/v1/options.proto";
 
 // Example service that will be routed through the router
 service MyService {
-  option (grpcrouter.routes_to) = {
+  option (grpcrouter.v1.routes_to) = {
     service: "MyService"
     routing_key: "instanceid"
     strategy: METADATA_BASED
