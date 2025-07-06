@@ -4,6 +4,9 @@ managed:
   override:
     - file_option: go_package_prefix
       value: github.com/panyam/grpcrouter/examples/myservice/gen/go
+    - file_option: go_package_prefix
+      value: github.com/panyam/grpcrouter/proto/gen/go
+      module: buf.build/panyam/grpcrouter
   disable:
     - file_option: go_package
       module: buf.build/googleapis/googleapis
@@ -23,5 +26,4 @@ plugins:
     out: ./gen/go
     opt:
       - paths=source_relative
-      # - openai_compat=true
 

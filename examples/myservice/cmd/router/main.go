@@ -13,14 +13,14 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 
-	pb "github.com/panyam/grpcrouter/examples/myservice/gen/go/grpcrouter/v1"
 	myservice "github.com/panyam/grpcrouter/examples/myservice/gen/go/myservice/v1"
+	pb "github.com/panyam/grpcrouter/proto/gen/go/grpcrouter/v1"
 	"github.com/panyam/grpcrouter/router"
 )
 
 func main() {
 	var (
-		port            = flag.String("port", "8080", "Port to listen on")
+		port            = flag.String("port", "9080", "Port to listen on")
 		timeout         = flag.Duration("timeout", 30*time.Second, "Default RPC timeout")
 		maxConcurrent   = flag.Int("max-concurrent", 1000, "Maximum concurrent RPCs")
 		healthInterval  = flag.Duration("health-interval", 30*time.Second, "Health check interval")

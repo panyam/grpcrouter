@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"google.golang.org/protobuf/compiler/protogen"
-	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/pluginpb"
 )
 
@@ -98,6 +97,7 @@ func generateServiceRouter(g *protogen.GeneratedFile, service *protogen.Service)
 	g.P("  correlator *router.RequestCorrelator")
 	g.P("  registry   *router.ServiceRegistry")
 	g.P("  config     *router.RouterConfig")
+	g.P("  routerServer *router.RouterServer")
 	g.P("}")
 	g.P()
 
@@ -111,10 +111,12 @@ func generateServiceRouter(g *protogen.GeneratedFile, service *protogen.Service)
 	g.P("      HealthCheckInterval: 30 * time.Second,")
 	g.P("    }")
 	g.P("  }")
+	g.P("  routerServer := router.NewRouterServer(config)")
 	g.P("  return &", routerName, "{")
 	g.P("    correlator: router.NewRequestCorrelator(),")
 	g.P("    registry:   router.NewServiceRegistry(),")
 	g.P("    config:     config,")
+	g.P("    routerServer: routerServer,")
 	g.P("  }")
 	g.P("}")
 	g.P()
@@ -122,9 +124,8 @@ func generateServiceRouter(g *protogen.GeneratedFile, service *protogen.Service)
 	// Generate Register method for service instances
 	g.P("// Register handles service instance registration")
 	g.P("func (r *", routerName, ") Register(stream pb.Router_RegisterServer) error {")
-	g.P("  // Use the generic router server logic")
-	g.P("  routerServer := router.NewRouterServer(r.config)")
-	g.P("  return routerServer.Register(stream)")
+	g.P("  // Use the shared router server logic")
+	g.P("  return r.routerServer.Register(stream)")
 	g.P("}")
 	g.P()
 
@@ -418,17 +419,15 @@ func generateHelperMethods(g *protogen.GeneratedFile, serviceName, routerName st
 	// Generate routeRPC method
 	g.P("// routeRPC routes an RPC call to an appropriate service instance")
 	g.P("func (r *", routerName, ") routeRPC(ctx context.Context, serviceName, method string, methodType pb.RpcMethodType, request *anypb.Any, routingKey string) (*router.PendingCall, error) {")
-	g.P("  // Create a generic router server to handle the routing")
-	g.P("  routerServer := router.NewRouterServer(r.config)")
-	g.P("  return routerServer.RouteRPC(ctx, serviceName, method, methodType, request, nil, routingKey)")
+	g.P("  // Use the shared router server to handle the routing")
+	g.P("  return r.routerServer.RouteRPC(ctx, serviceName, method, methodType, request, nil, routingKey)")
 	g.P("}")
 	g.P()
 
 	// Generate sendStreamMessage method
 	g.P("// sendStreamMessage sends a stream message for an active RPC call")
 	g.P("func (r *", routerName, ") sendStreamMessage(requestID string, message *anypb.Any, control pb.StreamControl) error {")
-	g.P("  routerServer := router.NewRouterServer(r.config)")
-	g.P("  return routerServer.SendStreamMessage(requestID, message, control)")
+	g.P("  return r.routerServer.SendStreamMessage(requestID, message, control)")
 	g.P("}")
 	g.P()
 
@@ -441,30 +440,6 @@ func generateHelperMethods(g *protogen.GeneratedFile, serviceName, routerName st
 }
 
 func hasRoutingAnnotation(service *protogen.Service) bool {
-	// Check if service has routes_to annotation by looking up the extension by name
+	// For simplicity, exclude the Router service itself and include all others
 	return service.GoName != "Router"
-	fmt.Printf("1. Were we here???")
-	options := service.Desc.Options()
-	if options == nil {
-		return false
-	}
-
-	// Look for the routes_to extension by name
-	hasRoutesToExtension := false
-	options.ProtoReflect().Range(func(fd protoreflect.FieldDescriptor, v protoreflect.Value) bool {
-		// Debug: print all extensions we find
-		if fd.IsExtension() {
-			fmt.Printf("DEBUG: Found extension: %s for service %s\n", fd.FullName(), service.GoName)
-		}
-
-		// Check if this is our routes_to extension
-		if fd.IsExtension() && fd.FullName() == "grpcrouter.v1.routes_to" {
-			hasRoutesToExtension = true
-			return false // Stop iteration - we found it
-		}
-		return true // Continue iteration
-	})
-
-	fmt.Printf("DEBUG: Service %s has routes_to: %t\n", service.GoName, hasRoutesToExtension)
-	return hasRoutesToExtension
 }

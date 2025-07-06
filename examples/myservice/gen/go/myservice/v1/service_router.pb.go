@@ -20,9 +20,11 @@ import (
 
 // MyServiceRouter implements MyService interface with routing capabilities
 type MyServiceRouter struct {
-	correlator *router.RequestCorrelator
-	registry   *router.ServiceRegistry
-	config     *router.RouterConfig
+	UnimplementedMyServiceServer
+	correlator   *router.RequestCorrelator
+	registry     *router.ServiceRegistry
+	config       *router.RouterConfig
+	routerServer *router.RouterServer
 }
 
 // NewMyServiceRouter creates a new MyService router
@@ -34,18 +36,19 @@ func NewMyServiceRouter(config *router.RouterConfig) *MyServiceRouter {
 			HealthCheckInterval: 30 * time.Second,
 		}
 	}
+	routerServer := router.NewRouterServer(config)
 	return &MyServiceRouter{
-		correlator: router.NewRequestCorrelator(),
-		registry:   router.NewServiceRegistry(),
-		config:     config,
+		correlator:   router.NewRequestCorrelator(),
+		registry:     router.NewServiceRegistry(),
+		config:       config,
+		routerServer: routerServer,
 	}
 }
 
 // Register handles service instance registration
 func (r *MyServiceRouter) Register(stream pb.Router_RegisterServer) error {
-	// Use the generic router server logic
-	routerServer := router.NewRouterServer(r.config)
-	return routerServer.Register(stream)
+	// Use the shared router server logic
+	return r.routerServer.Register(stream)
 }
 
 // Method1 implements the Method1 method with routing
@@ -282,15 +285,13 @@ func (r *MyServiceRouter) extractRoutingKey(ctx context.Context, req interface{}
 
 // routeRPC routes an RPC call to an appropriate service instance
 func (r *MyServiceRouter) routeRPC(ctx context.Context, serviceName, method string, methodType pb.RpcMethodType, request *anypb.Any, routingKey string) (*router.PendingCall, error) {
-	// Create a generic router server to handle the routing
-	routerServer := router.NewRouterServer(r.config)
-	return routerServer.RouteRPC(ctx, serviceName, method, methodType, request, nil, routingKey)
+	// Use the shared router server to handle the routing
+	return r.routerServer.RouteRPC(ctx, serviceName, method, methodType, request, nil, routingKey)
 }
 
 // sendStreamMessage sends a stream message for an active RPC call
 func (r *MyServiceRouter) sendStreamMessage(requestID string, message *anypb.Any, control pb.StreamControl) error {
-	routerServer := router.NewRouterServer(r.config)
-	return routerServer.SendStreamMessage(requestID, message, control)
+	return r.routerServer.SendStreamMessage(requestID, message, control)
 }
 
 // sendStreamControl sends a stream control signal

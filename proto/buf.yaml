@@ -1,4 +1,4 @@
 version: v2
 modules:
   - path: ./
-    name: buf.build/panyam/protoc-gen-go-grpcrouter-annotations
+    name: buf.build/panyam/grpcrouter

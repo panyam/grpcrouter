@@ -7,7 +7,7 @@
 package myservicev1
 
 import (
-	_ "github.com/panyam/grpcrouter/examples/myservice/gen/go/grpcrouter/v1"
+	_ "github.com/panyam/grpcrouter/proto/gen/go/grpcrouter/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"

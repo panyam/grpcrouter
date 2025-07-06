@@ -21,9 +21,9 @@ func main() {
 	log.Println()
 
 	// Test configuration
-	directAddr1 := "localhost:8081" // Direct service instance 1
-	directAddr2 := "localhost:8082" // Direct service instance 2
-	routerAddr := "localhost:8080"  // Router gateway
+	directAddr1 := "localhost:9081" // Direct service instance 1
+	directAddr2 := "localhost:9082" // Direct service instance 2
+	routerAddr := "localhost:9080"  // Router gateway
 
 	// Wait a moment for services to be ready
 	log.Println("Waiting for services to be ready...")

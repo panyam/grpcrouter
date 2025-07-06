@@ -17,15 +17,15 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/panyam/grpcrouter/examples/myservice"
-	pb "github.com/panyam/grpcrouter/examples/myservice/gen/go/grpcrouter/v1"
 	myservicev1 "github.com/panyam/grpcrouter/examples/myservice/gen/go/myservice/v1"
+	pb "github.com/panyam/grpcrouter/proto/gen/go/grpcrouter/v1"
 )
 
 func main() {
 	var (
 		mode     = flag.String("mode", "direct", "Service mode: 'direct' or 'router'")
-		port     = flag.String("port", "8081", "Port for direct mode")
-		router   = flag.String("router", "localhost:8080", "Router address for router mode")
+		port     = flag.String("port", "9081", "Port for direct mode")
+		router   = flag.String("router", "localhost:9080", "Router address for router mode")
 		id       = flag.String("id", "", "Instance ID (auto-generated if empty)")
 		endpoint = flag.String("endpoint", "", "Service endpoint (auto-generated if empty)")
 	)
