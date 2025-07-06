@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package grpcrouter;
+
+option go_package = "github.com/panyam/grpcrouter/proto";
+
+import "google/protobuf/descriptor.proto";
+
+// Custom option for declaring routing behavior
+message RoutingOptions {
+  // The target service to route to
+  string service = 1;
+  
+  // The routing key field name (e.g., "instanceid")
+  string routing_key = 2;
+  
+  // Routing strategy
+  RoutingStrategy strategy = 3;
+  
+  // Optional path prefix for HTTP routing
+  string path_prefix = 4;
+}
+
+enum RoutingStrategy {
+  METADATA_BASED = 0;  // Use gRPC metadata for routing
+  PATH_BASED = 1;      // Use HTTP path for routing
+  HEADER_BASED = 2;    // Use HTTP headers for routing
+}
+
+// Extend service options to include routing configuration
+extend google.protobuf.ServiceOptions {
+  RoutingOptions routes_to = 50001;
+}
+
+// Extend method options for per-method routing overrides
+extend google.protobuf.MethodOptions {
+  RoutingOptions method_routes_to = 50002;
+}

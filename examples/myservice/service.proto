@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+package myservice;
+
+option go_package = "github.com/panyam/grpcrouter/examples/myservice";
+
+import "proto/options.proto";
+
+// Example service that will be routed through the router
+service MyService {
+  option (grpcrouter.routes_to) = {
+    service: "MyService"
+    routing_key: "instanceid"
+    strategy: METADATA_BASED
+    path_prefix: "/api/v1"
+  };
+  
+  // Unary RPC
+  rpc Method1(Method1Request) returns (Method1Response);
+  
+  // Server streaming RPC
+  rpc Method2(Method2Request) returns (stream Method2Response);
+  
+  // Client streaming RPC
+  rpc Method3(stream Method3Request) returns (Method3Response);
+  
+  // Bidirectional streaming RPC
+  rpc StreamMethod(stream StreamRequest) returns (stream StreamResponse);
+}
+
+message Method1Request {
+  string data = 1;
+  int32 value = 2;
+}
+
+message Method1Response {
+  string result = 1;
+  string instance_id = 2;
+}
+
+message Method2Request {
+  repeated string items = 1;
+}
+
+message Method2Response {
+  string item = 1;
+  string result = 2;
+  string instance_id = 3;
+}
+
+message Method3Request {
+  string data = 1;
+  int32 batch_id = 2;
+}
+
+message Method3Response {
+  int32 total_processed = 1;
+  string summary = 2;
+  string instance_id = 3;
+}
+
+message StreamRequest {
+  string message = 1;
+  int32 sequence = 2;
+}
+
+message StreamResponse {
+  string response = 1;
+  int32 sequence = 2;
+  string instance_id = 3;
+}

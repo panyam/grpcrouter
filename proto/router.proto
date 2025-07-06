@@ -1,0 +1,202 @@
+syntax = "proto3";
+
+package grpcrouter;
+
+option go_package = "github.com/panyam/grpcrouter/proto";
+
+import "google/protobuf/any.proto";
+import "google/protobuf/timestamp.proto";
+
+// Router service that manages service instances and routes requests
+service Router {
+  // Register a service instance with the router
+  rpc Register(stream RegisterRequest) returns (stream RegisterResponse);
+  
+  // Health check for registered instances
+  rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
+  
+  // List registered instances
+  rpc ListInstances(ListInstancesRequest) returns (ListInstancesResponse);
+}
+
+// Registration request from service instances
+message RegisterRequest {
+  oneof request {
+    // Initial registration
+    InstanceInfo instance_info = 1;
+    // Keepalive heartbeat
+    Heartbeat heartbeat = 2;
+    // Unregister instance
+    UnregisterRequest unregister = 3;
+    // RPC response from service back to gateway
+    RpcResponse rpc_response = 4;
+  }
+}
+
+// Registration response to service instances
+message RegisterResponse {
+  oneof response {
+    // Registration acknowledgment
+    RegistrationAck ack = 1;
+    // RPC call from gateway to service
+    RpcCall rpc_call = 2;
+    // Error response
+    ErrorResponse error = 3;
+  }
+}
+
+// Instance information for registration
+message InstanceInfo {
+  // Unique instance identifier
+  string instance_id = 1;
+  
+  // Service name this instance provides
+  string service_name = 2;
+  
+  // Instance endpoint (host:port)
+  string endpoint = 3;
+  
+  // Instance metadata
+  map<string, string> metadata = 4;
+  
+  // Instance health status
+  HealthStatus health_status = 5;
+  
+  // Registration timestamp
+  google.protobuf.Timestamp registered_at = 6;
+}
+
+// Heartbeat message for keepalive
+message Heartbeat {
+  string instance_id = 1;
+  google.protobuf.Timestamp timestamp = 2;
+  HealthStatus health_status = 3;
+}
+
+// Unregister request
+message UnregisterRequest {
+  string instance_id = 1;
+  string reason = 2;
+}
+
+// Registration acknowledgment
+message RegistrationAck {
+  string instance_id = 1;
+  bool success = 2;
+  string message = 3;
+}
+
+// RPC call from gateway to service instance
+message RpcCall {
+  // Unique request ID for correlation
+  string request_id = 1;
+  // Method name (e.g., "/myservice.MyService/Method1")
+  string method = 2;
+  // Method type for streaming handling
+  RpcMethodType method_type = 3;
+  // gRPC metadata
+  map<string, string> metadata = 4;
+  // Request timeout
+  google.protobuf.Timestamp timeout = 5;
+  
+  oneof payload {
+    // For unary and server streaming: single request
+    google.protobuf.Any request = 6;
+    // For client and bidirectional streaming: stream message
+    StreamMessage stream_message = 7;
+  }
+}
+
+// RPC response from service instance to gateway
+message RpcResponse {
+  // Request ID for correlation
+  string request_id = 1;
+  // gRPC metadata
+  map<string, string> metadata = 2;
+  // Status (success/error) - sent when RPC completes
+  RpcStatus status = 3;
+  
+  oneof payload {
+    // For unary and client streaming: single response
+    google.protobuf.Any response = 4;
+    // For server and bidirectional streaming: stream message
+    StreamMessage stream_message = 5;
+  }
+}
+
+// Stream message for handling streaming RPCs
+message StreamMessage {
+  // Sequence number for ordering
+  int64 sequence = 1;
+  // Message payload
+  google.protobuf.Any message = 2;
+  // Stream control signals
+  StreamControl control = 3;
+}
+
+// Stream control signals
+enum StreamControl {
+  // Normal message
+  MESSAGE = 0;
+  // Client finished sending (half-close)
+  HALF_CLOSE = 1;
+  // Stream completed successfully
+  COMPLETE = 2;
+  // Stream aborted with error
+  ERROR = 3;
+}
+
+// RPC method types
+enum RpcMethodType {
+  UNARY = 0;
+  SERVER_STREAMING = 1;
+  CLIENT_STREAMING = 2;
+  BIDIRECTIONAL_STREAMING = 3;
+}
+
+// RPC status information
+message RpcStatus {
+  int32 code = 1;
+  string message = 2;
+  repeated google.protobuf.Any details = 3;
+}
+
+
+// Error response
+message ErrorResponse {
+  int32 code = 1;
+  string message = 2;
+  string details = 3;
+}
+
+// Health check request
+message HealthCheckRequest {
+  string instance_id = 1;
+}
+
+// Health check response
+message HealthCheckResponse {
+  string instance_id = 1;
+  HealthStatus status = 2;
+  string message = 3;
+}
+
+// List instances request
+message ListInstancesRequest {
+  string service_name = 1;
+  HealthStatus status_filter = 2;
+}
+
+// List instances response
+message ListInstancesResponse {
+  repeated InstanceInfo instances = 1;
+}
+
+// Health status enum
+enum HealthStatus {
+  UNKNOWN = 0;
+  HEALTHY = 1;
+  UNHEALTHY = 2;
+  STARTING = 3;
+  STOPPING = 4;
+}
