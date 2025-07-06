@@ -16,8 +16,9 @@ import (
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"github.com/panyam/grpcrouter/examples/myservice"
 	pb "github.com/panyam/grpcrouter/examples/myservice/gen/go/grpcrouter/v1"
-	myservice "github.com/panyam/grpcrouter/examples/myservice/gen/go/myservice/v1"
+	myservicev1 "github.com/panyam/grpcrouter/examples/myservice/gen/go/myservice/v1"
 )
 
 func main() {
@@ -64,7 +65,7 @@ func runDirectMode(service *myservice.MyServiceImpl, port, instanceID string) {
 	}
 
 	server := grpc.NewServer()
-	myservice.RegisterMyServiceServer(server, service)
+	myservicev1.RegisterMyServiceServer(server, service)
 
 	// Enable reflection for debugging
 	reflection.Register(server)

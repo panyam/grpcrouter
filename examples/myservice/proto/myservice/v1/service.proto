@@ -25,7 +25,7 @@ service MyService {
   rpc Method3(stream Method3Request) returns (Method3Response);
   
   // Bidirectional streaming RPC
-  rpc StreamMethod(stream StreamRequest) returns (stream StreamResponse);
+  rpc StreamMethod(stream StreamMethodRequest) returns (stream StreamMethodResponse);
 }
 
 message Method1Request {
@@ -59,12 +59,12 @@ message Method3Response {
   string instance_id = 3;
 }
 
-message StreamRequest {
+message StreamMethodRequest {
   string message = 1;
   int32 sequence = 2;
 }
 
-message StreamResponse {
+message StreamMethodResponse {
   string response = 1;
   int32 sequence = 2;
   string instance_id = 3;

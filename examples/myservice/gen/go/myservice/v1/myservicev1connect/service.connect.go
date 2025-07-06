@@ -52,7 +52,7 @@ type MyServiceClient interface {
 	// Client streaming RPC
 	Method3(context.Context) *connect.ClientStreamForClient[v1.Method3Request, v1.Method3Response]
 	// Bidirectional streaming RPC
-	StreamMethod(context.Context) *connect.BidiStreamForClient[v1.StreamRequest, v1.StreamResponse]
+	StreamMethod(context.Context) *connect.BidiStreamForClient[v1.StreamMethodRequest, v1.StreamMethodResponse]
 }
 
 // NewMyServiceClient constructs a client for the myservice.v1.MyService service. By default, it
@@ -84,7 +84,7 @@ func NewMyServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...c
 			connect.WithSchema(myServiceMethods.ByName("Method3")),
 			connect.WithClientOptions(opts...),
 		),
-		streamMethod: connect.NewClient[v1.StreamRequest, v1.StreamResponse](
+		streamMethod: connect.NewClient[v1.StreamMethodRequest, v1.StreamMethodResponse](
 			httpClient,
 			baseURL+MyServiceStreamMethodProcedure,
 			connect.WithSchema(myServiceMethods.ByName("StreamMethod")),
@@ -98,7 +98,7 @@ type myServiceClient struct {
 	method1      *connect.Client[v1.Method1Request, v1.Method1Response]
 	method2      *connect.Client[v1.Method2Request, v1.Method2Response]
 	method3      *connect.Client[v1.Method3Request, v1.Method3Response]
-	streamMethod *connect.Client[v1.StreamRequest, v1.StreamResponse]
+	streamMethod *connect.Client[v1.StreamMethodRequest, v1.StreamMethodResponse]
 }
 
 // Method1 calls myservice.v1.MyService.Method1.
@@ -117,7 +117,7 @@ func (c *myServiceClient) Method3(ctx context.Context) *connect.ClientStreamForC
 }
 
 // StreamMethod calls myservice.v1.MyService.StreamMethod.
-func (c *myServiceClient) StreamMethod(ctx context.Context) *connect.BidiStreamForClient[v1.StreamRequest, v1.StreamResponse] {
+func (c *myServiceClient) StreamMethod(ctx context.Context) *connect.BidiStreamForClient[v1.StreamMethodRequest, v1.StreamMethodResponse] {
 	return c.streamMethod.CallBidiStream(ctx)
 }
 
@@ -130,7 +130,7 @@ type MyServiceHandler interface {
 	// Client streaming RPC
 	Method3(context.Context, *connect.ClientStream[v1.Method3Request]) (*connect.Response[v1.Method3Response], error)
 	// Bidirectional streaming RPC
-	StreamMethod(context.Context, *connect.BidiStream[v1.StreamRequest, v1.StreamResponse]) error
+	StreamMethod(context.Context, *connect.BidiStream[v1.StreamMethodRequest, v1.StreamMethodResponse]) error
 }
 
 // NewMyServiceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -195,6 +195,6 @@ func (UnimplementedMyServiceHandler) Method3(context.Context, *connect.ClientStr
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("myservice.v1.MyService.Method3 is not implemented"))
 }
 
-func (UnimplementedMyServiceHandler) StreamMethod(context.Context, *connect.BidiStream[v1.StreamRequest, v1.StreamResponse]) error {
+func (UnimplementedMyServiceHandler) StreamMethod(context.Context, *connect.BidiStream[v1.StreamMethodRequest, v1.StreamMethodResponse]) error {
 	return connect.NewError(connect.CodeUnimplemented, errors.New("myservice.v1.MyService.StreamMethod is not implemented"))
 }

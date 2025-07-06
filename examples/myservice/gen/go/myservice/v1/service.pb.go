@@ -342,7 +342,7 @@ func (x *Method3Response) GetInstanceId() string {
 	return ""
 }
 
-type StreamRequest struct {
+type StreamMethodRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Message       string                 `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
 	Sequence      int32                  `protobuf:"varint,2,opt,name=sequence,proto3" json:"sequence,omitempty"`
@@ -350,20 +350,20 @@ type StreamRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *StreamRequest) Reset() {
-	*x = StreamRequest{}
+func (x *StreamMethodRequest) Reset() {
+	*x = StreamMethodRequest{}
 	mi := &file_myservice_v1_service_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *StreamRequest) String() string {
+func (x *StreamMethodRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*StreamRequest) ProtoMessage() {}
+func (*StreamMethodRequest) ProtoMessage() {}
 
-func (x *StreamRequest) ProtoReflect() protoreflect.Message {
+func (x *StreamMethodRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_myservice_v1_service_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -375,26 +375,26 @@ func (x *StreamRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use StreamRequest.ProtoReflect.Descriptor instead.
-func (*StreamRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use StreamMethodRequest.ProtoReflect.Descriptor instead.
+func (*StreamMethodRequest) Descriptor() ([]byte, []int) {
 	return file_myservice_v1_service_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *StreamRequest) GetMessage() string {
+func (x *StreamMethodRequest) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *StreamRequest) GetSequence() int32 {
+func (x *StreamMethodRequest) GetSequence() int32 {
 	if x != nil {
 		return x.Sequence
 	}
 	return 0
 }
 
-type StreamResponse struct {
+type StreamMethodResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Response      string                 `protobuf:"bytes,1,opt,name=response,proto3" json:"response,omitempty"`
 	Sequence      int32                  `protobuf:"varint,2,opt,name=sequence,proto3" json:"sequence,omitempty"`
@@ -403,20 +403,20 @@ type StreamResponse struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *StreamResponse) Reset() {
-	*x = StreamResponse{}
+func (x *StreamMethodResponse) Reset() {
+	*x = StreamMethodResponse{}
 	mi := &file_myservice_v1_service_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *StreamResponse) String() string {
+func (x *StreamMethodResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*StreamResponse) ProtoMessage() {}
+func (*StreamMethodResponse) ProtoMessage() {}
 
-func (x *StreamResponse) ProtoReflect() protoreflect.Message {
+func (x *StreamMethodResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_myservice_v1_service_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -428,26 +428,26 @@ func (x *StreamResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use StreamResponse.ProtoReflect.Descriptor instead.
-func (*StreamResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use StreamMethodResponse.ProtoReflect.Descriptor instead.
+func (*StreamMethodResponse) Descriptor() ([]byte, []int) {
 	return file_myservice_v1_service_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *StreamResponse) GetResponse() string {
+func (x *StreamMethodResponse) GetResponse() string {
 	if x != nil {
 		return x.Response
 	}
 	return ""
 }
 
-func (x *StreamResponse) GetSequence() int32 {
+func (x *StreamMethodResponse) GetSequence() int32 {
 	if x != nil {
 		return x.Sequence
 	}
 	return 0
 }
 
-func (x *StreamResponse) GetInstanceId() string {
+func (x *StreamMethodResponse) GetInstanceId() string {
 	if x != nil {
 		return x.InstanceId
 	}
@@ -480,20 +480,20 @@ const file_myservice_v1_service_proto_rawDesc = "" +
 	"\x0ftotal_processed\x18\x01 \x01(\x05R\x0etotalProcessed\x12\x18\n" +
 	"\asummary\x18\x02 \x01(\tR\asummary\x12\x1f\n" +
 	"\vinstance_id\x18\x03 \x01(\tR\n" +
-	"instanceId\"E\n" +
-	"\rStreamRequest\x12\x18\n" +
+	"instanceId\"K\n" +
+	"\x13StreamMethodRequest\x12\x18\n" +
 	"\amessage\x18\x01 \x01(\tR\amessage\x12\x1a\n" +
-	"\bsequence\x18\x02 \x01(\x05R\bsequence\"i\n" +
-	"\x0eStreamResponse\x12\x1a\n" +
+	"\bsequence\x18\x02 \x01(\x05R\bsequence\"o\n" +
+	"\x14StreamMethodResponse\x12\x1a\n" +
 	"\bresponse\x18\x01 \x01(\tR\bresponse\x12\x1a\n" +
 	"\bsequence\x18\x02 \x01(\x05R\bsequence\x12\x1f\n" +
 	"\vinstance_id\x18\x03 \x01(\tR\n" +
-	"instanceId2\xdc\x02\n" +
+	"instanceId2\xe8\x02\n" +
 	"\tMyService\x12F\n" +
 	"\aMethod1\x12\x1c.myservice.v1.Method1Request\x1a\x1d.myservice.v1.Method1Response\x12H\n" +
 	"\aMethod2\x12\x1c.myservice.v1.Method2Request\x1a\x1d.myservice.v1.Method2Response0\x01\x12H\n" +
-	"\aMethod3\x12\x1c.myservice.v1.Method3Request\x1a\x1d.myservice.v1.Method3Response(\x01\x12M\n" +
-	"\fStreamMethod\x12\x1b.myservice.v1.StreamRequest\x1a\x1c.myservice.v1.StreamResponse(\x010\x01\x1a$\x8a\xb5\x18 \n" +
+	"\aMethod3\x12\x1c.myservice.v1.Method3Request\x1a\x1d.myservice.v1.Method3Response(\x01\x12Y\n" +
+	"\fStreamMethod\x12!.myservice.v1.StreamMethodRequest\x1a\".myservice.v1.StreamMethodResponse(\x010\x01\x1a$\x8a\xb5\x18 \n" +
 	"\tMyService\x12\n" +
 	"instanceid\"\a/api/v1B\xc2\x01\n" +
 	"\x10com.myservice.v1B\fServiceProtoP\x01ZOgithub.com/panyam/grpcrouter/examples/myservice/gen/go/myservice/v1;myservicev1\xa2\x02\x03MXX\xaa\x02\fMyservice.V1\xca\x02\fMyservice\\V1\xe2\x02\x18Myservice\\V1\\GPBMetadata\xea\x02\rMyservice::V1b\x06proto3"
@@ -512,24 +512,24 @@ func file_myservice_v1_service_proto_rawDescGZIP() []byte {
 
 var file_myservice_v1_service_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_myservice_v1_service_proto_goTypes = []any{
-	(*Method1Request)(nil),  // 0: myservice.v1.Method1Request
-	(*Method1Response)(nil), // 1: myservice.v1.Method1Response
-	(*Method2Request)(nil),  // 2: myservice.v1.Method2Request
-	(*Method2Response)(nil), // 3: myservice.v1.Method2Response
-	(*Method3Request)(nil),  // 4: myservice.v1.Method3Request
-	(*Method3Response)(nil), // 5: myservice.v1.Method3Response
-	(*StreamRequest)(nil),   // 6: myservice.v1.StreamRequest
-	(*StreamResponse)(nil),  // 7: myservice.v1.StreamResponse
+	(*Method1Request)(nil),       // 0: myservice.v1.Method1Request
+	(*Method1Response)(nil),      // 1: myservice.v1.Method1Response
+	(*Method2Request)(nil),       // 2: myservice.v1.Method2Request
+	(*Method2Response)(nil),      // 3: myservice.v1.Method2Response
+	(*Method3Request)(nil),       // 4: myservice.v1.Method3Request
+	(*Method3Response)(nil),      // 5: myservice.v1.Method3Response
+	(*StreamMethodRequest)(nil),  // 6: myservice.v1.StreamMethodRequest
+	(*StreamMethodResponse)(nil), // 7: myservice.v1.StreamMethodResponse
 }
 var file_myservice_v1_service_proto_depIdxs = []int32{
 	0, // 0: myservice.v1.MyService.Method1:input_type -> myservice.v1.Method1Request
 	2, // 1: myservice.v1.MyService.Method2:input_type -> myservice.v1.Method2Request
 	4, // 2: myservice.v1.MyService.Method3:input_type -> myservice.v1.Method3Request
-	6, // 3: myservice.v1.MyService.StreamMethod:input_type -> myservice.v1.StreamRequest
+	6, // 3: myservice.v1.MyService.StreamMethod:input_type -> myservice.v1.StreamMethodRequest
 	1, // 4: myservice.v1.MyService.Method1:output_type -> myservice.v1.Method1Response
 	3, // 5: myservice.v1.MyService.Method2:output_type -> myservice.v1.Method2Response
 	5, // 6: myservice.v1.MyService.Method3:output_type -> myservice.v1.Method3Response
-	7, // 7: myservice.v1.MyService.StreamMethod:output_type -> myservice.v1.StreamResponse
+	7, // 7: myservice.v1.MyService.StreamMethod:output_type -> myservice.v1.StreamMethodResponse
 	4, // [4:8] is the sub-list for method output_type
 	0, // [0:4] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name

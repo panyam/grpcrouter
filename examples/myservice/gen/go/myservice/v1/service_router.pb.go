@@ -245,7 +245,7 @@ func (r *MyServiceRouter) StreamMethod(stream MyService_StreamMethodServer) erro
 					errChan <- nil
 					return
 				}
-				var resp StreamResponse
+				var resp StreamMethodResponse
 				if err := streamMsg.Message.UnmarshalTo(&resp); err != nil {
 					errChan <- err
 					return

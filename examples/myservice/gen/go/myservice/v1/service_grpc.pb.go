@@ -38,7 +38,7 @@ type MyServiceClient interface {
 	// Client streaming RPC
 	Method3(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[Method3Request, Method3Response], error)
 	// Bidirectional streaming RPC
-	StreamMethod(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[StreamRequest, StreamResponse], error)
+	StreamMethod(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[StreamMethodRequest, StreamMethodResponse], error)
 }
 
 type myServiceClient struct {
@@ -91,18 +91,18 @@ func (c *myServiceClient) Method3(ctx context.Context, opts ...grpc.CallOption) 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type MyService_Method3Client = grpc.ClientStreamingClient[Method3Request, Method3Response]
 
-func (c *myServiceClient) StreamMethod(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[StreamRequest, StreamResponse], error) {
+func (c *myServiceClient) StreamMethod(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[StreamMethodRequest, StreamMethodResponse], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	stream, err := c.cc.NewStream(ctx, &MyService_ServiceDesc.Streams[2], MyService_StreamMethod_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &grpc.GenericClientStream[StreamRequest, StreamResponse]{ClientStream: stream}
+	x := &grpc.GenericClientStream[StreamMethodRequest, StreamMethodResponse]{ClientStream: stream}
 	return x, nil
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type MyService_StreamMethodClient = grpc.BidiStreamingClient[StreamRequest, StreamResponse]
+type MyService_StreamMethodClient = grpc.BidiStreamingClient[StreamMethodRequest, StreamMethodResponse]
 
 // MyServiceServer is the server API for MyService service.
 // All implementations must embed UnimplementedMyServiceServer
@@ -117,7 +117,7 @@ type MyServiceServer interface {
 	// Client streaming RPC
 	Method3(grpc.ClientStreamingServer[Method3Request, Method3Response]) error
 	// Bidirectional streaming RPC
-	StreamMethod(grpc.BidiStreamingServer[StreamRequest, StreamResponse]) error
+	StreamMethod(grpc.BidiStreamingServer[StreamMethodRequest, StreamMethodResponse]) error
 	mustEmbedUnimplementedMyServiceServer()
 }
 
@@ -137,7 +137,7 @@ func (UnimplementedMyServiceServer) Method2(*Method2Request, grpc.ServerStreamin
 func (UnimplementedMyServiceServer) Method3(grpc.ClientStreamingServer[Method3Request, Method3Response]) error {
 	return status.Errorf(codes.Unimplemented, "method Method3 not implemented")
 }
-func (UnimplementedMyServiceServer) StreamMethod(grpc.BidiStreamingServer[StreamRequest, StreamResponse]) error {
+func (UnimplementedMyServiceServer) StreamMethod(grpc.BidiStreamingServer[StreamMethodRequest, StreamMethodResponse]) error {
 	return status.Errorf(codes.Unimplemented, "method StreamMethod not implemented")
 }
 func (UnimplementedMyServiceServer) mustEmbedUnimplementedMyServiceServer() {}
@@ -198,11 +198,11 @@ func _MyService_Method3_Handler(srv interface{}, stream grpc.ServerStream) error
 type MyService_Method3Server = grpc.ClientStreamingServer[Method3Request, Method3Response]
 
 func _MyService_StreamMethod_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(MyServiceServer).StreamMethod(&grpc.GenericServerStream[StreamRequest, StreamResponse]{ServerStream: stream})
+	return srv.(MyServiceServer).StreamMethod(&grpc.GenericServerStream[StreamMethodRequest, StreamMethodResponse]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type MyService_StreamMethodServer = grpc.BidiStreamingServer[StreamRequest, StreamResponse]
+type MyService_StreamMethodServer = grpc.BidiStreamingServer[StreamMethodRequest, StreamMethodResponse]
 
 // MyService_ServiceDesc is the grpc.ServiceDesc for MyService service.
 // It's only intended for direct use with grpc.RegisterService,

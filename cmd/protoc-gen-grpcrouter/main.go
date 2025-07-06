@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"google.golang.org/protobuf/compiler/protogen"
+	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/pluginpb"
 )
 
@@ -93,6 +94,7 @@ func generateServiceRouter(g *protogen.GeneratedFile, service *protogen.Service)
 	// Generate router struct
 	g.P("// ", routerName, " implements ", serviceName, " interface with routing capabilities")
 	g.P("type ", routerName, " struct {")
+	g.P("  Unimplemented", serviceName, "Server")
 	g.P("  correlator *router.RequestCorrelator")
 	g.P("  registry   *router.ServiceRegistry")
 	g.P("  config     *router.RouterConfig")
@@ -439,7 +441,30 @@ func generateHelperMethods(g *protogen.GeneratedFile, serviceName, routerName st
 }
 
 func hasRoutingAnnotation(service *protogen.Service) bool {
-	// Check if service has routes_to annotation
-	// This is a simplified check - in a real implementation, we'd parse the options
-	return true // For now, generate for all services
+	// Check if service has routes_to annotation by looking up the extension by name
+	return service.GoName != "Router"
+	fmt.Printf("1. Were we here???")
+	options := service.Desc.Options()
+	if options == nil {
+		return false
+	}
+
+	// Look for the routes_to extension by name
+	hasRoutesToExtension := false
+	options.ProtoReflect().Range(func(fd protoreflect.FieldDescriptor, v protoreflect.Value) bool {
+		// Debug: print all extensions we find
+		if fd.IsExtension() {
+			fmt.Printf("DEBUG: Found extension: %s for service %s\n", fd.FullName(), service.GoName)
+		}
+
+		// Check if this is our routes_to extension
+		if fd.IsExtension() && fd.FullName() == "grpcrouter.v1.routes_to" {
+			hasRoutesToExtension = true
+			return false // Stop iteration - we found it
+		}
+		return true // Continue iteration
+	})
+
+	fmt.Printf("DEBUG: Service %s has routes_to: %t\n", service.GoName, hasRoutesToExtension)
+	return hasRoutesToExtension
 }

@@ -266,7 +266,7 @@ func runBidirectionalStreamingTests(directAddr, routerAddr string) {
 	testMessages := []string{"hello", "world", "test"}
 
 	for i, msg := range testMessages {
-		req := &myservice.StreamRequest{
+		req := &myservice.StreamMethodRequest{
 			Message:  msg,
 			Sequence: int32(i + 1),
 		}
@@ -298,7 +298,7 @@ func runBidirectionalStreamingTests(directAddr, routerAddr string) {
 	}
 
 	// Send one message to test router
-	req := &myservice.StreamRequest{
+	req := &myservice.StreamMethodRequest{
 		Message:  "router test",
 		Sequence: 1,
 	}
