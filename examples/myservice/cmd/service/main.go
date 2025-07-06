@@ -16,8 +16,8 @@ import (
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	"github.com/panyam/grpcrouter/examples/myservice"
-	myservicev1 "github.com/panyam/grpcrouter/examples/myservice/gen/go/myservice/v1"
+	impl "github.com/panyam/grpcrouter/examples/myservice"
+	myservice "github.com/panyam/grpcrouter/examples/myservice/gen/go/myservice/v1"
 	pb "github.com/panyam/grpcrouter/proto/gen/go/grpcrouter/v1"
 )
 
@@ -45,7 +45,7 @@ func main() {
 	log.Printf("Mode: %s", *mode)
 
 	// Create service implementation
-	service := myservice.NewMyServiceImpl(*id)
+	service := impl.NewMyServiceImpl(*id)
 
 	switch *mode {
 	case "direct":
@@ -58,14 +58,14 @@ func main() {
 }
 
 // runDirectMode starts the service as a standalone gRPC server
-func runDirectMode(service *myservice.MyServiceImpl, port, instanceID string) {
+func runDirectMode(service *impl.MyServiceImpl, port, instanceID string) {
 	listener, err := net.Listen("tcp", ":"+port)
 	if err != nil {
 		log.Fatalf("Failed to listen on port %s: %v", port, err)
 	}
 
 	server := grpc.NewServer()
-	myservicev1.RegisterMyServiceServer(server, service)
+	myservice.RegisterMyServiceServer(server, service)
 
 	// Enable reflection for debugging
 	reflection.Register(server)
@@ -86,20 +86,20 @@ func runDirectMode(service *myservice.MyServiceImpl, port, instanceID string) {
 	server.GracefulStop()
 }
 
-// runRouterMode connects the service to a router and handles requests via streams
-func runRouterMode(service *myservice.MyServiceImpl, routerAddr, instanceID, endpoint string) {
-	// Connect to router
+// runRouterMode connects the service to a MyServiceRouter and handles requests via typed streams
+func runRouterMode(service *impl.MyServiceImpl, routerAddr, instanceID, endpoint string) {
+	// Connect to MyServiceRouter (not generic router)
 	conn, err := grpc.Dial(routerAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("Failed to connect to router at %s: %v", routerAddr, err)
 	}
 	defer conn.Close()
 
-	client := pb.NewRouterClient(conn)
+	client := myservice.NewMyServiceRouterClient(conn)
 
-	log.Printf("MyService instance %s connecting to router at %s", instanceID, routerAddr)
+	log.Printf("MyService instance %s connecting to MyServiceRouter at %s", instanceID, routerAddr)
 
-	// Create registration stream
+	// Create typed registration stream
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -108,9 +108,9 @@ func runRouterMode(service *myservice.MyServiceImpl, routerAddr, instanceID, end
 		log.Fatalf("Failed to create registration stream: %v", err)
 	}
 
-	// Send initial registration
-	registrationReq := &pb.RegisterRequest{
-		Request: &pb.RegisterRequest_InstanceInfo{
+	// Send initial registration with typed message
+	registrationReq := &myservice.MyServiceRegisterRequest{
+		Request: &myservice.MyServiceRegisterRequest_InstanceInfo{
 			InstanceInfo: &pb.InstanceInfo{
 				InstanceId:  instanceID,
 				ServiceName: "MyService",
@@ -130,28 +130,25 @@ func runRouterMode(service *myservice.MyServiceImpl, routerAddr, instanceID, end
 		log.Fatalf("Failed to send registration: %v", err)
 	}
 
-	log.Printf("MyService instance %s registered with router in ROUTER mode", instanceID)
+	log.Printf("MyService instance %s registered with MyServiceRouter in ROUTER mode", instanceID)
 
 	// Start heartbeat goroutine
-	go sendHeartbeats(stream, instanceID)
+	go sendTypedHeartbeats(stream, instanceID)
 
-	// Start RPC handler goroutine
-	go handleRPCCalls(stream, service, instanceID)
-
-	// Handle registration responses
-	handleRegistrationResponses(stream, service, instanceID)
+	// Handle incoming typed RPC calls from router
+	handleTypedRegistrationResponses(stream, service, instanceID)
 }
 
-// sendHeartbeats sends periodic heartbeat messages to the router
-func sendHeartbeats(stream pb.Router_RegisterClient, instanceID string) {
+// sendTypedHeartbeats sends periodic heartbeat messages to the typed router
+func sendTypedHeartbeats(stream myservice.MyServiceRouter_RegisterClient, instanceID string) {
 	ticker := time.NewTicker(30 * time.Second)
 	defer ticker.Stop()
 
 	for {
 		select {
 		case <-ticker.C:
-			heartbeat := &pb.RegisterRequest{
-				Request: &pb.RegisterRequest_Heartbeat{
+			heartbeat := &myservice.MyServiceRegisterRequest{
+				Request: &myservice.MyServiceRegisterRequest_Heartbeat{
 					Heartbeat: &pb.Heartbeat{
 						InstanceId:   instanceID,
 						Timestamp:    timestamppb.Now(),
@@ -173,8 +170,8 @@ func sendHeartbeats(stream pb.Router_RegisterClient, instanceID string) {
 	}
 }
 
-// handleRegistrationResponses processes messages from the router
-func handleRegistrationResponses(stream pb.Router_RegisterClient, service *myservice.MyServiceImpl, instanceID string) {
+// handleTypedRegistrationResponses processes typed messages from the MyServiceRouter
+func handleTypedRegistrationResponses(stream myservice.MyServiceRouter_RegisterClient, service *impl.MyServiceImpl, instanceID string) {
 	for {
 		resp, err := stream.Recv()
 		if err != nil {
@@ -183,18 +180,18 @@ func handleRegistrationResponses(stream pb.Router_RegisterClient, service *myser
 		}
 
 		switch msg := resp.Response.(type) {
-		case *pb.RegisterResponse_Ack:
+		case *myservice.MyServiceRegisterResponse_Ack:
 			if msg.Ack.Success {
 				log.Printf("[%s] Registration acknowledged: %s", instanceID, msg.Ack.Message)
 			} else {
 				log.Printf("[%s] Registration failed: %s", instanceID, msg.Ack.Message)
 			}
 
-		case *pb.RegisterResponse_RpcCall:
-			// Handle incoming RPC call
-			go handleSingleRPCCall(stream, service, instanceID, msg.RpcCall)
+		case *myservice.MyServiceRegisterResponse_RpcCall:
+			// Handle incoming typed RPC call
+			go handleTypedRPCCall(stream, service, instanceID, msg.RpcCall)
 
-		case *pb.RegisterResponse_Error:
+		case *myservice.MyServiceRegisterResponse_Error:
 			log.Printf("[%s] Router error: %s", instanceID, msg.Error.Message)
 
 		default:
@@ -203,42 +200,121 @@ func handleRegistrationResponses(stream pb.Router_RegisterClient, service *myser
 	}
 }
 
-// handleRPCCalls is a placeholder for handling RPC calls (actual implementation would be more complex)
-func handleRPCCalls(stream pb.Router_RegisterClient, service *myservice.MyServiceImpl, instanceID string) {
-	// This would contain the logic to handle different types of RPC calls
-	// For now, we'll rely on handleSingleRPCCall for each incoming call
-	log.Printf("[%s] RPC handler goroutine started", instanceID)
-}
+// handleTypedRPCCall processes a single typed RPC call from the MyServiceRouter
+func handleTypedRPCCall(stream myservice.MyServiceRouter_RegisterClient, service *impl.MyServiceImpl, instanceID string, rpcCall *myservice.MyServiceRpcCall) {
+	log.Printf("[%s] Handling typed RPC call: %s (ID: %s)", instanceID, rpcCall.Method, rpcCall.RequestId)
 
-// handleSingleRPCCall processes a single RPC call from the router
-func handleSingleRPCCall(stream pb.Router_RegisterClient, service *myservice.MyServiceImpl, instanceID string, rpcCall *pb.RpcCall) {
-	log.Printf("[%s] Handling RPC call: %s (ID: %s)", instanceID, rpcCall.Method, rpcCall.RequestId)
+	var rpcResponse *myservice.MyServiceRpcResponse
 
-	// This is a simplified implementation - a real implementation would:
-	// 1. Parse the method name to determine which service method to call
-	// 2. Unmarshal the request from Any type to the specific request type
-	// 3. Call the appropriate service method
-	// 4. Marshal the response back to Any type
-	// 5. Send the response back through the stream
-
-	// For now, we'll just acknowledge that we received the call
-	response := &pb.RegisterRequest{
-		Request: &pb.RegisterRequest_RpcResponse{
-			RpcResponse: &pb.RpcResponse{
-				RequestId: rpcCall.RequestId,
-				Status: &pb.RpcStatus{
-					Code:    0, // OK
-					Message: "Call handled successfully",
-				},
+	// Handle different typed RPC methods using oneof
+	switch req := rpcCall.Request.(type) {
+	case *myservice.MyServiceRpcCall_Method1:
+		rpcResponse = handleTypedMethod1(service, instanceID, rpcCall.RequestId, req.Method1)
+	
+	case *myservice.MyServiceRpcCall_Method2:
+		rpcResponse = handleTypedMethod2(service, instanceID, rpcCall.RequestId, req.Method2)
+	
+	case *myservice.MyServiceRpcCall_Method3:
+		rpcResponse = handleTypedMethod3(service, instanceID, rpcCall.RequestId, req.Method3)
+	
+	case *myservice.MyServiceRpcCall_StreamMethod:
+		rpcResponse = handleTypedStreamMethod(service, instanceID, rpcCall.RequestId, req.StreamMethod)
+	
+	default:
+		log.Printf("[%s] Unknown typed method in RPC call", instanceID)
+		rpcResponse = &myservice.MyServiceRpcResponse{
+			RequestId: rpcCall.RequestId,
+			Status: &pb.RpcStatus{
+				Code:    12, // UNIMPLEMENTED
+				Message: "Method not implemented",
 			},
+			Metadata: make(map[string]string),
+		}
+	}
+
+	// Send typed response back through registration stream
+	response := &myservice.MyServiceRegisterRequest{
+		Request: &myservice.MyServiceRegisterRequest_RpcResponse{
+			RpcResponse: rpcResponse,
 		},
 	}
 
 	if err := stream.Send(response); err != nil {
-		log.Printf("[%s] Failed to send RPC response: %v", instanceID, err)
+		log.Printf("[%s] Failed to send typed RPC response: %v", instanceID, err)
 	}
 
-	log.Printf("[%s] Sent response for RPC call %s", instanceID, rpcCall.RequestId)
+	log.Printf("[%s] Sent typed response for RPC call %s", instanceID, rpcCall.RequestId)
+}
+
+// handleTypedMethod1 processes typed Method1 RPC calls
+func handleTypedMethod1(service *impl.MyServiceImpl, instanceID, requestID string, req *myservice.Method1Request) *myservice.MyServiceRpcResponse {
+	log.Printf("[%s] Processing Method1 request", instanceID)
+	
+	// Call the actual service method
+	ctx := context.Background()
+	resp, err := service.Method1(ctx, req)
+	
+	if err != nil {
+		log.Printf("[%s] Method1 call failed: %v", instanceID, err)
+		return &myservice.MyServiceRpcResponse{
+			RequestId: requestID,
+			Status: &pb.RpcStatus{
+				Code:    13, // INTERNAL
+				Message: fmt.Sprintf("Service method failed: %v", err),
+			},
+			Metadata: make(map[string]string),
+		}
+	}
+
+	log.Printf("[%s] Method1 completed successfully", instanceID)
+	return &myservice.MyServiceRpcResponse{
+		RequestId: requestID,
+		Status: &pb.RpcStatus{
+			Code:    0, // OK
+			Message: "Success",
+		},
+		Metadata: make(map[string]string),
+		Response: &myservice.MyServiceRpcResponse_Method1{Method1: resp},
+	}
+}
+
+// handleTypedMethod2 processes typed Method2 RPC calls (server streaming)
+func handleTypedMethod2(service *impl.MyServiceImpl, instanceID, requestID string, req *myservice.Method2Request) *myservice.MyServiceRpcResponse {
+	log.Printf("[%s] Method2 (server streaming) not yet implemented", instanceID)
+	return &myservice.MyServiceRpcResponse{
+		RequestId: requestID,
+		Status: &pb.RpcStatus{
+			Code:    12, // UNIMPLEMENTED
+			Message: "Server streaming not yet implemented",
+		},
+		Metadata: make(map[string]string),
+	}
+}
+
+// handleTypedMethod3 processes typed Method3 RPC calls (client streaming)
+func handleTypedMethod3(service *impl.MyServiceImpl, instanceID, requestID string, req *myservice.Method3Request) *myservice.MyServiceRpcResponse {
+	log.Printf("[%s] Method3 (client streaming) not yet implemented", instanceID)
+	return &myservice.MyServiceRpcResponse{
+		RequestId: requestID,
+		Status: &pb.RpcStatus{
+			Code:    12, // UNIMPLEMENTED
+			Message: "Client streaming not yet implemented",
+		},
+		Metadata: make(map[string]string),
+	}
+}
+
+// handleTypedStreamMethod processes typed StreamMethod RPC calls (bidirectional streaming)
+func handleTypedStreamMethod(service *impl.MyServiceImpl, instanceID, requestID string, req *myservice.StreamMethodRequest) *myservice.MyServiceRpcResponse {
+	log.Printf("[%s] StreamMethod (bidirectional streaming) not yet implemented", instanceID)
+	return &myservice.MyServiceRpcResponse{
+		RequestId: requestID,
+		Status: &pb.RpcStatus{
+			Code:    12, // UNIMPLEMENTED
+			Message: "Bidirectional streaming not yet implemented",
+		},
+		Metadata: make(map[string]string),
+	}
 }
 
 // waitForInterrupt waits for an interrupt signal

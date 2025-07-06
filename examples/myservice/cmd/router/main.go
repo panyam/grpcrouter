@@ -14,7 +14,6 @@ import (
 	"google.golang.org/grpc/reflection"
 
 	myservice "github.com/panyam/grpcrouter/examples/myservice/gen/go/myservice/v1"
-	pb "github.com/panyam/grpcrouter/proto/gen/go/grpcrouter/v1"
 	"github.com/panyam/grpcrouter/router"
 )
 
@@ -38,16 +37,15 @@ func main() {
 	}
 
 	// Create MyService-specific router (handles both registration and service calls)
-	myServiceRouter := myservice.NewMyServiceRouter(config)
+	myServiceRouter := myservice.NewMyServiceRouterImpl(config)
 
 	// Create gRPC server
 	grpcServer := grpc.NewServer(
 		grpc.MaxConcurrentStreams(uint32(*maxConcurrent)),
 	)
 
-	// Register only the MyService router (it implements both RouterServer and MyServiceServer)
-	pb.RegisterRouterServer(grpcServer, myServiceRouter)
-	myservice.RegisterMyServiceServer(grpcServer, myServiceRouter)
+	// Register the MyService router (it implements MyServiceRouterServer)
+	myservice.RegisterMyServiceRouterServer(grpcServer, myServiceRouter)
 
 	// Enable reflection for debugging
 	reflection.Register(grpcServer)

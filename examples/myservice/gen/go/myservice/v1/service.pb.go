@@ -4,7 +4,7 @@
 // 	protoc        (unknown)
 // source: myservice/v1/service.proto
 
-package myservicev1
+package v1
 
 import (
 	_ "github.com/panyam/grpcrouter/proto/gen/go/grpcrouter/v1"
@@ -495,8 +495,8 @@ const file_myservice_v1_service_proto_rawDesc = "" +
 	"\aMethod3\x12\x1c.myservice.v1.Method3Request\x1a\x1d.myservice.v1.Method3Response(\x01\x12Y\n" +
 	"\fStreamMethod\x12!.myservice.v1.StreamMethodRequest\x1a\".myservice.v1.StreamMethodResponse(\x010\x01\x1a$\x8a\xb5\x18 \n" +
 	"\tMyService\x12\n" +
-	"instanceid\"\a/api/v1B\xc2\x01\n" +
-	"\x10com.myservice.v1B\fServiceProtoP\x01ZOgithub.com/panyam/grpcrouter/examples/myservice/gen/go/myservice/v1;myservicev1\xa2\x02\x03MXX\xaa\x02\fMyservice.V1\xca\x02\fMyservice\\V1\xe2\x02\x18Myservice\\V1\\GPBMetadata\xea\x02\rMyservice::V1b\x06proto3"
+	"instanceid\"\a/api/v1B\xa5\x01\n" +
+	"\x10com.myservice.v1B\fServiceProtoP\x01Z2github.com/panyam/grpcrouter/examples/myservice/v1\xa2\x02\x03MXX\xaa\x02\fMyservice.V1\xca\x02\fMyservice\\V1\xe2\x02\x18Myservice\\V1\\GPBMetadata\xea\x02\rMyservice::V1b\x06proto3"
 
 var (
 	file_myservice_v1_service_proto_rawDescOnce sync.Once

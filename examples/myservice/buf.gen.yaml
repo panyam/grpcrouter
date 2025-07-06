@@ -1,29 +1,26 @@
-version: v2
+version: v1
 managed:
   enabled: true
-  override:
-    - file_option: go_package_prefix
-      value: github.com/panyam/grpcrouter/examples/myservice/gen/go
-    - file_option: go_package_prefix
-      value: github.com/panyam/grpcrouter/proto/gen/go
-      module: buf.build/panyam/grpcrouter
-  disable:
-    - file_option: go_package
-      module: buf.build/googleapis/googleapis
 plugins:
-  - remote: buf.build/protocolbuffers/go
-    out: ./gen/go
-    opt: paths=source_relative
-  - remote: buf.build/grpc/go:v1.5.1
-    out: ./gen/go
-    opt:
-    - paths=source_relative
-  - remote: buf.build/connectrpc/go:v1.18.1
-    out: ./gen/go
-    opt:
-    - paths=source_relative
-  - local: ["go","run","../../cmd/protoc-gen-grpcrouter"]
-    out: ./gen/go
+  # Phase 1: Generate service-specific router proto files
+  - name: grpcrouter-proto
+    path: ../../cmd/protoc-gen-grpcrouter-proto/protoc-gen-grpcrouter-proto
+    out: gen/proto
+    strategy: directory
+  
+  # Standard Go generation for original service protos
+  - name: go
+    out: gen/go
     opt:
       - paths=source_relative
-
+  
+  - name: go-grpc
+    out: gen/go
+    opt:
+      - paths=source_relative
+  
+  # Phase 3: Generate router implementation (will be added to Step 2)
+  # - name: grpcrouter-impl
+  #   path: ../../cmd/protoc-gen-grpcrouter-impl/protoc-gen-grpcrouter-impl
+  #   out: gen/go
+  #   strategy: directory
