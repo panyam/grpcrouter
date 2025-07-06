@@ -19,6 +19,12 @@ plugins:
     opt:
       - paths=source_relative
   
+  # Phase 4: Generate service bridge for connecting existing services to router
+  - name: grpcrouter-bridge
+    path: ../../cmd/protoc-gen-grpcrouter-bridge/protoc-gen-grpcrouter-bridge
+    out: gen/go
+    strategy: directory
+  
   # Phase 3: Generate router implementation (will be added to Step 2)
   # - name: grpcrouter-impl
   #   path: ../../cmd/protoc-gen-grpcrouter-impl/protoc-gen-grpcrouter-impl

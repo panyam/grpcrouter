@@ -1,0 +1,77 @@
+syntax = "proto3";
+
+package myservice.v1;
+
+option go_package = "github.com/panyam/grpcrouter/examples/myservice/v1";
+
+import "grpcrouter/v1/router.proto";
+import "myservice/v1/service.proto";
+
+// MyServiceRouter provides routing for MyService service
+service MyServiceRouter {
+  // Proxy for MyService.Method1
+  rpc Method1(Method1Request) returns (Method1Response);
+  // Proxy for MyService.Method2
+  rpc Method2(Method2Request) returns (stream Method2Response);
+  // Proxy for MyService.Method3
+  rpc Method3(stream Method3Request) returns (Method3Response);
+  // Proxy for MyService.StreamMethod
+  rpc StreamMethod(stream StreamMethodRequest) returns (stream StreamMethodResponse);
+
+  // Service instance registration and RPC routing
+  rpc Register(stream MyServiceRegisterRequest) returns (stream MyServiceRegisterResponse);
+}
+
+// MyServiceRegisterRequest contains registration and RPC response messages
+message MyServiceRegisterRequest {
+  oneof request {
+    // Standard registration messages
+    grpcrouter.v1.InstanceInfo instance_info = 1;
+    grpcrouter.v1.Heartbeat heartbeat = 2;
+    grpcrouter.v1.UnregisterRequest unregister = 3;
+    // Service-specific RPC response
+    MyServiceRpcResponse rpc_response = 4;
+  }
+}
+
+// MyServiceRegisterResponse contains registration acks and RPC calls
+message MyServiceRegisterResponse {
+  oneof response {
+    // Standard registration messages
+    grpcrouter.v1.RegistrationAck ack = 1;
+    grpcrouter.v1.ErrorResponse error = 2;
+    // Service-specific RPC call
+    MyServiceRpcCall rpc_call = 3;
+  }
+}
+
+// MyServiceRpcCall contains typed RPC requests for MyService methods
+message MyServiceRpcCall {
+  string request_id = 1;
+  string method = 2;
+  grpcrouter.v1.RpcMethodType method_type = 3;
+  map<string, string> metadata = 4;
+  
+  oneof request {
+    Method1Request method1 = 10;
+    Method2Request method2 = 11;
+    Method3Request method3 = 12;
+    StreamMethodRequest stream_method = 13;
+  }
+}
+
+// MyServiceRpcResponse contains typed RPC responses for MyService methods
+message MyServiceRpcResponse {
+  string request_id = 1;
+  map<string, string> metadata = 2;
+  grpcrouter.v1.RpcStatus status = 3;
+  
+  oneof response {
+    Method1Response method1 = 10;
+    Method2Response method2 = 11;
+    Method3Response method3 = 12;
+    StreamMethodResponse stream_method = 13;
+  }
+}
+
+

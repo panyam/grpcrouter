@@ -1,241 +1,402 @@
-# gRPC Router Plugin
+# gRPC Router - Type-Safe Service Routing with Auto-Generation
 
-A gRPC plugin that enables services to act as routers to other gRPC services using bidirectional streaming over persistent connections. This plugin generates service-specific, type-safe router implementations that maintain the original gRPC API while enabling transparent routing.
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/panyam/grpcrouter)
+[![Go Version](https://img.shields.io/badge/go-1.21+-blue.svg)](https://golang.org/)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-## Overview
+A sophisticated gRPC routing system that generates type-safe, service-specific routers with **zero manual translation code**. Enable seamless service routing through firewalls and network boundaries using persistent bidirectional streams.
 
-The gRPC Router Plugin solves the problem of routing gRPC requests through firewalls and network boundaries by:
+## 🚀 Key Features
 
-1. **Service instances connect to a gateway** using persistent bidirectional streams
-2. **Clients call the gateway** using normal gRPC calls
-3. **Gateway routes requests** to appropriate service instances via the persistent streams
-4. **Responses flow back** through the same streams to the original clients
+- **🔒 100% Type-Safe**: Complete elimination of `google.protobuf.Any` with compile-time type checking
+- **🤖 Auto-Generated**: 4-phase generation pipeline creates complete router infrastructure from proto files
+- **🔌 Drop-in Integration**: Works with existing gRPC services with minimal code changes
+- **⚡ Zero-Copy Forwarding**: Real-time message forwarding without buffering
+- **🌐 All gRPC Method Types**: Unary, server streaming, client streaming, and bidirectional streaming
+- **📊 Built-in Registry**: Automatic service discovery, health checking, and instance management
+- **🔄 Smart Routing**: Metadata-based, path-based, and header-based routing strategies
 
-## Key Features
+## 🏗️ Architecture Overview
 
-- **Type-safe routing**: Generated service-specific routers with compile-time type checking
-- **All gRPC method types supported**: Unary, server streaming, client streaming, and bidirectional streaming
-- **Zero buffering**: Messages are forwarded immediately without buffering
-- **Routing strategies**: Support for metadata-based, path-based, and header-based routing
-- **Service discovery**: Automatic instance registration and health checking
-- **Load balancing**: Consistent hashing and round-robin strategies
+### Revolutionary Auto-Generation Pipeline
 
-## Architecture
-
-### Core Flow
-
-```
-User → Gateway.Method1(req) [blocks at Junction A]
-Gateway → Service Instance (via persistent stream + request ID)
-Service Instance → Process request → Send response (via stream)
-Gateway → [Junction A unblocks] → Return response to User
-```
-
-### Bidirectional Streaming RPC-over-Streams
-
-The system tunnels all gRPC method types through bidirectional streams:
-
-- **RegisterRequest/RegisterResponse**: Bidirectional stream between gateway and service instances
-- **Request correlation**: Each RPC call gets a unique request ID for response matching
-- **Stream multiplexing**: Multiple concurrent RPCs share the same persistent stream
-- **Message forwarding**: No buffering - each message forwarded immediately
-
-## Project Structure
-
-```
-grpcrouter/
-├── proto/
-│   ├── options.proto          # Custom routing annotations
-│   └── router.proto           # Router service definition
-├── router/
-│   ├── correlation.go         # Request correlation system
-│   ├── server.go             # Generic router server
-│   └── registry.go           # Service instance registry
-├── plugin/
-│   └── protoc-gen-grpcrouter/ # Code generation plugin
-├── examples/
-│   └── myservice/             # Example service with routing
-├── cmd/
-│   └── router/               # Router binary (will be service-specific)
-└── Makefile                  # Build automation
+```mermaid
+graph TD
+    A[Service.proto] --> B[Phase 1: Router Proto Gen]
+    B --> C[ServiceRouter.proto with Typed Oneof]
+    C --> D[Phase 2: Standard protoc]
+    D --> E[Typed Structs & Interfaces]
+    E --> F[Phase 3: Router Implementation]
+    F --> G[ServiceRouterImpl]
+    A --> H[Phase 4: Service Bridge Gen] 
+    H --> I[ServiceBridge - Drop-in Integration]
 ```
 
-## Usage
+### Connection Flow
 
-### 1. Define a Service with Routing
-
-```protobuf
-syntax = "proto3";
-
-import "proto/options.proto";
-
-service MyService {
-  option (grpcrouter.routes_to) = {
-    service: "MyService"
-    routing_key: "instanceid"
-    strategy: METADATA_BASED
-    path_prefix: "/api/v1"
-  };
-  
-  rpc Method1(Method1Request) returns (Method1Response);
-  rpc Method2(Method2Request) returns (stream Method2Response);
-  rpc Method3(stream Method3Request) returns (Method3Response);
-  rpc StreamMethod(stream StreamRequest) returns (stream StreamResponse);
-}
+```
+┌─────────────┐    gRPC Calls     ┌─────────────────┐    Persistent     ┌─────────────────┐
+│   Clients   │ ──────────────► │   Router Gateway │ ◄────Streams───► │ Service Instance │
+│             │                 │  (Auto-Generated)│                   │ (Your Existing  │
+│ Your Users  │ ◄────────────── │   Type-Safe      │                   │   Service)      │
+└─────────────┘    Responses    └─────────────────┘                   └─────────────────┘
 ```
 
-### 2. Generate Router Code
+## 📦 Installation
 
 ```bash
-# Generate protobuf and router code
-make proto
+# Clone the repository
+git clone https://github.com/panyam/grpcrouter.git
+cd grpcrouter
 
-# Or manually:
-protoc --go_out=. --go_opt=paths=source_relative \
-       --go-grpc_out=. --go-grpc_opt=paths=source_relative \
-       --grpcrouter_out=. --grpcrouter_opt=paths=source_relative \
-       examples/myservice/service.proto
+# Install dependencies
+make install-deps
+
+# Build the generation plugins
+make build
 ```
 
-This generates:
-- `service.pb.go` - Standard protobuf types
-- `service_grpc.pb.go` - Standard gRPC service definitions  
-- `service_router.pb.go` - **Generated router implementation**
+## ⚡ Quick Start
 
-### 3. Generated Router Implementation
+### 1. Define Your Service
 
-The plugin generates a service-specific router like:
+```protobuf
+// myservice/v1/service.proto
+syntax = "proto3";
+package myservice.v1;
 
-```go
-// Generated: myservice_router.pb.go
-type MyServiceRouter struct {
-    correlator *router.RequestCorrelator
-    registry   *router.ServiceRegistry
-    config     *router.RouterConfig
+service MyService {
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+  rpc StreamData(StreamRequest) returns (stream StreamResponse);
+  rpc Upload(stream UploadRequest) returns (UploadResponse);
+  rpc Chat(stream ChatMessage) returns (stream ChatMessage);
 }
 
-// Type-safe method implementations
-func (r *MyServiceRouter) Method1(ctx context.Context, req *Method1Request) (*Method1Response, error) {
-    // Extract routing key and route to appropriate instance
+message GetUserRequest {
+  string user_id = 1;
 }
 
-func (r *MyServiceRouter) Method2(req *Method2Request, stream MyService_Method2Server) error {
-    // Handle server streaming with real-time forwarding
+message GetUserResponse {
+  string name = 1;
+  string email = 2;
 }
-
-// ... other methods
+// ... other messages
 ```
 
-### 4. Dual-Mode Service Implementation
+### 2. Generate Complete Router Infrastructure
 
-Services can run in two modes:
+```bash
+# Single command generates everything
+./generate.sh
+```
 
-**Direct Mode** (normal gRPC):
+This creates:
+- **Router Proto**: `MyServiceRouter.proto` with typed oneof messages  
+- **Router Implementation**: `MyServiceRouterImpl` with embedded registry
+- **Service Bridge**: `MyServiceBridge` for drop-in integration
+- **Typed Structs**: Complete type-safe message handling
+
+### 3. Router-Enable Your Existing Service (3 lines!)
+
 ```go
+// main.go - Enable routing for your existing service
 func main() {
+    // Your existing service implementation
+    service := &MyServiceImpl{}
+    
+    // Auto-generated bridge - handles everything!
+    bridge := myservice.NewMyServiceBridge(service, nil)
+    bridge.Start()
+    defer bridge.Stop()
+    
+    // Service is now router-enabled with zero manual code!
+    log.Println("Service connected to router with type-safe routing")
+    bridge.Wait()
+}
+```
+
+### 4. Start the Router Gateway
+
+```go
+// Start the auto-generated router
+func main() {
+    router := myservice.NewMyServiceRouterImpl(nil)
+    
     server := grpc.NewServer()
-    myservice.RegisterMyServiceServer(server, &MyServiceImpl{})
+    myservice.RegisterMyServiceRouterServer(server, router)
+    
+    log.Println("Type-safe MyService router listening on :8080")
     server.Serve(listener)
 }
 ```
 
-**Router Mode** (via persistent streams):
+### 5. Clients Connect Normally
+
 ```go
-func main() {
-    // Connect to router
-    conn, _ := grpc.Dial("router:8080")
-    client := pb.NewRouterClient(conn)
+// Clients connect to router as if it's the original service
+conn, _ := grpc.Dial("router:8080")
+client := myservice.NewMyServiceRouterClient(conn)
+
+// All method types work transparently
+user, _ := client.GetUser(ctx, &myservice.GetUserRequest{UserId: "123"})
+stream, _ := client.StreamData(ctx, &myservice.StreamRequest{})
+```
+
+## 🔧 Generated Components
+
+### Type-Safe Router Implementation
+
+```go
+// Auto-generated: service_router_impl.pb.go
+type MyServiceRouterImpl struct {
+    // Embedded service registry
+    registry   *router.ServiceRegistry
+    correlator *router.RequestCorrelator
+    // ... connection management
+}
+
+// Type-safe method with zero Any usage
+func (r *MyServiceRouterImpl) GetUser(ctx context.Context, req *GetUserRequest) (*GetUserResponse, error) {
+    // Extract routing key from metadata
+    routingKey := r.extractRoutingKey(ctx, req)
     
-    // Register with router and handle requests via streams
-    stream, _ := client.Register(context.Background())
-    handleRegistration(stream, &MyServiceImpl{})
+    // Find service instance
+    instance, err := r.registry.SelectInstance("MyService", routingKey)
+    
+    // Create typed call (no google.protobuf.Any!)
+    call := &MyServiceRpcCall{
+        RequestId: generateID(),
+        Method: "/MyService/GetUser",
+        Request: &MyServiceRpcCall_GetUser{GetUser: req}, // Typed oneof
+    }
+    
+    // Send and correlate typed response
+    response := r.sendTypedCall(instance, call)
+    return response.GetGetUser(), nil // Type-safe extraction
 }
 ```
 
-## Build Commands
+### Drop-in Service Bridge
+
+```go
+// Auto-generated: service_bridge.pb.go  
+type MyServiceBridge struct {
+    service MyServiceServer // Your existing implementation
+    // ... auto-generated connection management
+}
+
+func (b *MyServiceBridge) Start() error {
+    // Connects to router
+    // Handles registration, heartbeats
+    // Dispatches incoming calls to your service
+    // Sends typed responses back
+}
+
+// Generated method handlers
+func (b *MyServiceBridge) handleGetUser(requestID string, req *GetUserRequest) *MyServiceRpcResponse {
+    resp, err := b.service.GetUser(context.Background(), req)
+    return &MyServiceRpcResponse{
+        RequestId: requestID,
+        Response: &MyServiceRpcResponse_GetUser{GetUser: resp}, // Typed oneof
+    }
+}
+```
+
+## 📋 Examples
+
+### Complete Working Example
 
 ```bash
-# Install dependencies
-make install-deps
+# Terminal 1: Start the router
+cd examples/myservice
+./bin/router
 
-# Generate protobuf code
-make proto
+# Terminal 2: Start a service instance  
+./bin/service -mode=router -id=instance-1
 
-# Build everything
+# Terminal 3: Run client demo
+./bin/demo
+```
+
+### Advanced Service Configuration
+
+```go
+// Configure the bridge with custom options
+options := myservice.DefaultMyServiceBridgeOptions()
+options.RouterAddr = "router.prod.com:443"
+options.InstanceID = "user-service-west-1"
+options.Metadata = map[string]string{
+    "region":        "us-west-1", 
+    "version":       "v1.2.3",
+    "capabilities":  "ssl,compression",
+}
+
+bridge := myservice.NewMyServiceBridge(service, options)
+```
+
+## 🚦 Message Flow
+
+### Unary RPC Flow
+```
+Client --(GetUser req)--> Router --(typed call)--> Service Instance
+Client <--(GetUser res)-- Router <--(typed resp)-- Service Instance
+                        [Zero copying, type-safe throughout]
+```
+
+### Streaming RPC Flow  
+```
+Client ◄──► Router ◄──► Service Instance
+       Real-time bidirectional forwarding
+       Each message individually routed
+       No buffering or batching
+```
+
+## 🎯 Benefits Over Traditional Approaches
+
+| Feature | Traditional gRPC | Generic Proxies | **gRPC Router** |
+|---------|------------------|-----------------|-----------------|
+| Type Safety | ✅ Service-only | ❌ Runtime errors | ✅ **End-to-end** |
+| Code Generation | ✅ Service stubs | ❌ Manual config | ✅ **Complete pipeline** |
+| Existing Service Integration | ✅ Native | ❌ Requires changes | ✅ **3-line drop-in** |
+| Network Traversal | ❌ Direct only | ⚠️ HTTP proxying | ✅ **Persistent streams** |
+| Streaming Support | ✅ Full | ⚠️ Buffered | ✅ **Real-time forwarding** |
+| Service Discovery | ❌ External | ⚠️ Basic | ✅ **Built-in registry** |
+
+## 🛠️ Build Commands
+
+```bash
+# Generate everything
+make generate
+
+# Build all binaries  
 make build
 
 # Run tests
 make test
 
-# Build router binary
-make build-router
-
-# Build example service
-make build-example
-
 # Clean generated files
 make clean
+
+# Example-specific commands
+cd examples/myservice
+make build          # Build router, service, demo
+make demo           # Run end-to-end demo
+./generate.sh       # Regenerate from proto
 ```
 
-## Message Flow Examples
+## 📁 Project Structure
 
-### Unary RPC
 ```
-Client → RouterGateway.Method1(req)
-RouterGateway → ServiceInstance: RpcCall{id:123, method, request}
-ServiceInstance → RouterGateway: RpcResponse{id:123, response}
-RouterGateway → Client: response
+grpcrouter/
+├── 🔧 cmd/                          # Generation plugins
+│   ├── protoc-gen-grpcrouter-proto/    # Phase 1: Router proto generation
+│   ├── protoc-gen-grpcrouter-impl/     # Phase 3: Router implementation  
+│   └── protoc-gen-grpcrouter-bridge/   # Phase 4: Service bridge generation
+├── 📦 router/                       # Core router libraries
+│   ├── correlation.go                  # Request correlation system
+│   ├── registry.go                     # Service instance registry
+│   └── config.go                       # Router configuration
+├── 🌐 proto/                        # Core protobuf definitions
+│   └── grpcrouter/v1/
+│       └── router.proto                # Router service and types
+├── 📋 examples/myservice/           # Complete working example
+│   ├── proto/myservice/v1/             # Example service definition
+│   ├── gen/                           # Generated code output
+│   ├── cmd/                           # Example binaries
+│   │   ├── router/                    # Auto-generated router
+│   │   ├── service/                   # Service with bridge integration
+│   │   └── demo/                      # Client demo
+│   ├── buf.gen.yaml                   # Generation configuration
+│   └── generate.sh                    # 4-phase generation script
+├── 📖 docs/                        # Documentation
+├── 🧪 tests/                       # Integration tests
+└── 📄 Makefile                     # Build automation
 ```
 
-### Server Streaming
+## 🔄 4-Phase Generation Process
+
+### Phase 1: Router Proto Generation
+- Input: `MyService.proto`
+- Output: `MyServiceRouter.proto` with typed oneof messages
+- Eliminates `google.protobuf.Any` usage
+
+### Phase 2: Standard Protoc Generation  
+- Input: Generated router proto
+- Output: Typed Go structs and gRPC interfaces
+- Uses standard protoc plugins
+
+### Phase 3: Router Implementation Generation
+- Input: Router proto + service info
+- Output: Complete `MyServiceRouterImpl` with registry
+- Type-safe method implementations
+
+### Phase 4: Service Bridge Generation
+- Input: Original service proto
+- Output: `MyServiceBridge` for drop-in integration
+- Handles connection, registration, and dispatch
+
+## 🚀 Advanced Features
+
+### Routing Strategies
+
+```go
+// Metadata-based routing (default)
+ctx = metadata.AppendToOutgoingContext(ctx, "instanceid", "user-service-1")
+
+// Path-based routing for gRPC-Web
+options.PathPrefix = "/api/v1/users"
+
+// Header-based routing  
+options.RoutingHeader = "X-Service-Instance"
 ```
-Client → RouterGateway.Method2(req) [opens stream]
-RouterGateway → ServiceInstance: RpcCall{id:456, method, request}
-ServiceInstance → RouterGateway: RpcResponse{id:456, stream_msg1}
-RouterGateway → Client: stream_msg1 [immediate forward]
-ServiceInstance → RouterGateway: RpcResponse{id:456, stream_msg2}
-RouterGateway → Client: stream_msg2 [immediate forward]
-ServiceInstance → RouterGateway: RpcResponse{id:456, COMPLETE}
-RouterGateway → Client: [close stream]
+
+### Health Checking & Service Discovery
+
+```go
+// Built-in health monitoring
+bridge.SetHealthChecker(func() pb.HealthStatus {
+    if service.IsHealthy() {
+        return pb.HealthStatus_HEALTHY
+    }
+    return pb.HealthStatus_UNHEALTHY
+})
+
+// Automatic service discovery
+instances := router.ListInstances("MyService")
 ```
 
-### Bidirectional Streaming
+### Load Balancing
+
+```go
+// Configure load balancing strategy
+config := &router.RouterConfig{
+    LoadBalanceStrategy: router.CONSISTENT_HASH,
+    HealthCheckInterval: 30 * time.Second,
+}
 ```
-Client ↔ RouterGateway.StreamMethod() [bidirectional]
-RouterGateway ↔ ServiceInstance: RpcCall/RpcResponse with StreamMessages
-Messages flow independently in both directions with sequence numbers
-```
 
-## Routing Strategies
+## 🤝 Contributing
 
-- **METADATA_BASED**: Extract routing key from gRPC metadata
-- **PATH_BASED**: Extract routing key from HTTP path (for gRPC-Web)
-- **HEADER_BASED**: Extract routing key from HTTP headers
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes
+4. Run tests (`make test`)
+5. Commit your changes (`git commit -m 'Add amazing feature'`)
+6. Push to the branch (`git push origin feature/amazing-feature`)
+7. Open a Pull Request
 
-## Current Status
+## 📝 License
 
-✅ Protobuf definitions with custom options
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-✅ Request correlation system  
+## 🙏 Acknowledgments
 
-✅ Service registry with instance management
+- Built on the robust gRPC ecosystem
+- Inspired by service mesh architectures
+- Designed for enterprise-scale deployments
 
-✅ Generic router server implementation
+---
 
-🟡 Protoc plugin for code generation (in progress)
+**⭐ Star this repo if you find it useful!**
 
-⏳ Service-specific router generation
-
-⏳ Dual-mode service wrapper
-
-⏳ Example implementation
-
-⏳ Integration tests
-
-## Next Steps
-
-1. Complete protoc plugin implementation
-2. Generate MyService router code
-3. Create dual-mode service wrapper
-4. Build example binaries
-5. End-to-end testing
+For questions, issues, or feature requests, please [open an issue](https://github.com/panyam/grpcrouter/issues).
