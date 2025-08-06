@@ -19,10 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	MyService_Method1_FullMethodName      = "/myservice.v1.MyService/Method1"
-	MyService_Method2_FullMethodName      = "/myservice.v1.MyService/Method2"
-	MyService_Method3_FullMethodName      = "/myservice.v1.MyService/Method3"
-	MyService_StreamMethod_FullMethodName = "/myservice.v1.MyService/StreamMethod"
+	MyService_Method1_FullMethodName              = "/myservice.v1.MyService/Method1"
+	MyService_ServerStreamedMethod_FullMethodName = "/myservice.v1.MyService/ServerStreamedMethod"
+	MyService_ClientStreamedMethod_FullMethodName = "/myservice.v1.MyService/ClientStreamedMethod"
+	MyService_BidirStreamMethod_FullMethodName    = "/myservice.v1.MyService/BidirStreamMethod"
 )
 
 // MyServiceClient is the client API for MyService service.
@@ -34,11 +34,11 @@ type MyServiceClient interface {
 	// Unary RPC
 	Method1(ctx context.Context, in *Method1Request, opts ...grpc.CallOption) (*Method1Response, error)
 	// Server streaming RPC
-	Method2(ctx context.Context, in *Method2Request, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Method2Response], error)
+	ServerStreamedMethod(ctx context.Context, in *ServerStreamedMethodRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ServerStreamedMethodResponse], error)
 	// Client streaming RPC
-	Method3(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[Method3Request, Method3Response], error)
+	ClientStreamedMethod(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[ClientStreamedMethodRequest, ClientStreamedMethodResponse], error)
 	// Bidirectional streaming RPC
-	StreamMethod(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[StreamMethodRequest, StreamMethodResponse], error)
+	BidirStreamMethod(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[BidirStreamMethodRequest, BidirStreamMethodResponse], error)
 }
 
 type myServiceClient struct {
@@ -59,13 +59,13 @@ func (c *myServiceClient) Method1(ctx context.Context, in *Method1Request, opts 
 	return out, nil
 }
 
-func (c *myServiceClient) Method2(ctx context.Context, in *Method2Request, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Method2Response], error) {
+func (c *myServiceClient) ServerStreamedMethod(ctx context.Context, in *ServerStreamedMethodRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ServerStreamedMethodResponse], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &MyService_ServiceDesc.Streams[0], MyService_Method2_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &MyService_ServiceDesc.Streams[0], MyService_ServerStreamedMethod_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &grpc.GenericClientStream[Method2Request, Method2Response]{ClientStream: stream}
+	x := &grpc.GenericClientStream[ServerStreamedMethodRequest, ServerStreamedMethodResponse]{ClientStream: stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -76,33 +76,33 @@ func (c *myServiceClient) Method2(ctx context.Context, in *Method2Request, opts 
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type MyService_Method2Client = grpc.ServerStreamingClient[Method2Response]
+type MyService_ServerStreamedMethodClient = grpc.ServerStreamingClient[ServerStreamedMethodResponse]
 
-func (c *myServiceClient) Method3(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[Method3Request, Method3Response], error) {
+func (c *myServiceClient) ClientStreamedMethod(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[ClientStreamedMethodRequest, ClientStreamedMethodResponse], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &MyService_ServiceDesc.Streams[1], MyService_Method3_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &MyService_ServiceDesc.Streams[1], MyService_ClientStreamedMethod_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &grpc.GenericClientStream[Method3Request, Method3Response]{ClientStream: stream}
+	x := &grpc.GenericClientStream[ClientStreamedMethodRequest, ClientStreamedMethodResponse]{ClientStream: stream}
 	return x, nil
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type MyService_Method3Client = grpc.ClientStreamingClient[Method3Request, Method3Response]
+type MyService_ClientStreamedMethodClient = grpc.ClientStreamingClient[ClientStreamedMethodRequest, ClientStreamedMethodResponse]
 
-func (c *myServiceClient) StreamMethod(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[StreamMethodRequest, StreamMethodResponse], error) {
+func (c *myServiceClient) BidirStreamMethod(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[BidirStreamMethodRequest, BidirStreamMethodResponse], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &MyService_ServiceDesc.Streams[2], MyService_StreamMethod_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &MyService_ServiceDesc.Streams[2], MyService_BidirStreamMethod_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &grpc.GenericClientStream[StreamMethodRequest, StreamMethodResponse]{ClientStream: stream}
+	x := &grpc.GenericClientStream[BidirStreamMethodRequest, BidirStreamMethodResponse]{ClientStream: stream}
 	return x, nil
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type MyService_StreamMethodClient = grpc.BidiStreamingClient[StreamMethodRequest, StreamMethodResponse]
+type MyService_BidirStreamMethodClient = grpc.BidiStreamingClient[BidirStreamMethodRequest, BidirStreamMethodResponse]
 
 // MyServiceServer is the server API for MyService service.
 // All implementations must embed UnimplementedMyServiceServer
@@ -113,11 +113,11 @@ type MyServiceServer interface {
 	// Unary RPC
 	Method1(context.Context, *Method1Request) (*Method1Response, error)
 	// Server streaming RPC
-	Method2(*Method2Request, grpc.ServerStreamingServer[Method2Response]) error
+	ServerStreamedMethod(*ServerStreamedMethodRequest, grpc.ServerStreamingServer[ServerStreamedMethodResponse]) error
 	// Client streaming RPC
-	Method3(grpc.ClientStreamingServer[Method3Request, Method3Response]) error
+	ClientStreamedMethod(grpc.ClientStreamingServer[ClientStreamedMethodRequest, ClientStreamedMethodResponse]) error
 	// Bidirectional streaming RPC
-	StreamMethod(grpc.BidiStreamingServer[StreamMethodRequest, StreamMethodResponse]) error
+	BidirStreamMethod(grpc.BidiStreamingServer[BidirStreamMethodRequest, BidirStreamMethodResponse]) error
 	mustEmbedUnimplementedMyServiceServer()
 }
 
@@ -131,14 +131,14 @@ type UnimplementedMyServiceServer struct{}
 func (UnimplementedMyServiceServer) Method1(context.Context, *Method1Request) (*Method1Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Method1 not implemented")
 }
-func (UnimplementedMyServiceServer) Method2(*Method2Request, grpc.ServerStreamingServer[Method2Response]) error {
-	return status.Errorf(codes.Unimplemented, "method Method2 not implemented")
+func (UnimplementedMyServiceServer) ServerStreamedMethod(*ServerStreamedMethodRequest, grpc.ServerStreamingServer[ServerStreamedMethodResponse]) error {
+	return status.Errorf(codes.Unimplemented, "method ServerStreamedMethod not implemented")
 }
-func (UnimplementedMyServiceServer) Method3(grpc.ClientStreamingServer[Method3Request, Method3Response]) error {
-	return status.Errorf(codes.Unimplemented, "method Method3 not implemented")
+func (UnimplementedMyServiceServer) ClientStreamedMethod(grpc.ClientStreamingServer[ClientStreamedMethodRequest, ClientStreamedMethodResponse]) error {
+	return status.Errorf(codes.Unimplemented, "method ClientStreamedMethod not implemented")
 }
-func (UnimplementedMyServiceServer) StreamMethod(grpc.BidiStreamingServer[StreamMethodRequest, StreamMethodResponse]) error {
-	return status.Errorf(codes.Unimplemented, "method StreamMethod not implemented")
+func (UnimplementedMyServiceServer) BidirStreamMethod(grpc.BidiStreamingServer[BidirStreamMethodRequest, BidirStreamMethodResponse]) error {
+	return status.Errorf(codes.Unimplemented, "method BidirStreamMethod not implemented")
 }
 func (UnimplementedMyServiceServer) mustEmbedUnimplementedMyServiceServer() {}
 func (UnimplementedMyServiceServer) testEmbeddedByValue()                   {}
@@ -179,30 +179,30 @@ func _MyService_Method1_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
-func _MyService_Method2_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(Method2Request)
+func _MyService_ServerStreamedMethod_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ServerStreamedMethodRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(MyServiceServer).Method2(m, &grpc.GenericServerStream[Method2Request, Method2Response]{ServerStream: stream})
+	return srv.(MyServiceServer).ServerStreamedMethod(m, &grpc.GenericServerStream[ServerStreamedMethodRequest, ServerStreamedMethodResponse]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type MyService_Method2Server = grpc.ServerStreamingServer[Method2Response]
+type MyService_ServerStreamedMethodServer = grpc.ServerStreamingServer[ServerStreamedMethodResponse]
 
-func _MyService_Method3_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(MyServiceServer).Method3(&grpc.GenericServerStream[Method3Request, Method3Response]{ServerStream: stream})
+func _MyService_ClientStreamedMethod_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(MyServiceServer).ClientStreamedMethod(&grpc.GenericServerStream[ClientStreamedMethodRequest, ClientStreamedMethodResponse]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type MyService_Method3Server = grpc.ClientStreamingServer[Method3Request, Method3Response]
+type MyService_ClientStreamedMethodServer = grpc.ClientStreamingServer[ClientStreamedMethodRequest, ClientStreamedMethodResponse]
 
-func _MyService_StreamMethod_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(MyServiceServer).StreamMethod(&grpc.GenericServerStream[StreamMethodRequest, StreamMethodResponse]{ServerStream: stream})
+func _MyService_BidirStreamMethod_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(MyServiceServer).BidirStreamMethod(&grpc.GenericServerStream[BidirStreamMethodRequest, BidirStreamMethodResponse]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type MyService_StreamMethodServer = grpc.BidiStreamingServer[StreamMethodRequest, StreamMethodResponse]
+type MyService_BidirStreamMethodServer = grpc.BidiStreamingServer[BidirStreamMethodRequest, BidirStreamMethodResponse]
 
 // MyService_ServiceDesc is the grpc.ServiceDesc for MyService service.
 // It's only intended for direct use with grpc.RegisterService,
@@ -218,18 +218,18 @@ var MyService_ServiceDesc = grpc.ServiceDesc{
 	},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "Method2",
-			Handler:       _MyService_Method2_Handler,
+			StreamName:    "ServerStreamedMethod",
+			Handler:       _MyService_ServerStreamedMethod_Handler,
 			ServerStreams: true,
 		},
 		{
-			StreamName:    "Method3",
-			Handler:       _MyService_Method3_Handler,
+			StreamName:    "ClientStreamedMethod",
+			Handler:       _MyService_ClientStreamedMethod_Handler,
 			ClientStreams: true,
 		},
 		{
-			StreamName:    "StreamMethod",
-			Handler:       _MyService_StreamMethod_Handler,
+			StreamName:    "BidirStreamMethod",
+			Handler:       _MyService_BidirStreamMethod_Handler,
 			ServerStreams: true,
 			ClientStreams: true,
 		},

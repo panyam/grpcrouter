@@ -51,14 +51,14 @@ func (s *MyServiceImpl) Method1(ctx context.Context, req *myservice.Method1Reque
 	}, nil
 }
 
-// Method2 implements the server streaming RPC method
-func (s *MyServiceImpl) Method2(req *myservice.Method2Request, stream myservice.MyService_Method2Server) error {
+// ServerStreamedMethod implements the server streaming RPC method
+func (s *MyServiceImpl) ServerStreamedMethod(req *myservice.ServerStreamedMethodRequest, stream myservice.MyService_ServerStreamedMethodServer) error {
 	s.mu.Lock()
 	s.requestCount++
 	count := s.requestCount
 	s.mu.Unlock()
 
-	log.Printf("[%s] Method2 called with %d items (request #%d)", s.InstanceID, len(req.Items), count)
+	log.Printf("[%s] ServerStreamedMethod called with %d items (request #%d)", s.InstanceID, len(req.Items), count)
 
 	for i, item := range req.Items {
 		// Simulate processing time for each item
@@ -67,7 +67,7 @@ func (s *MyServiceImpl) Method2(req *myservice.Method2Request, stream myservice.
 		result := fmt.Sprintf("[%s] Item %d: %s (processed at %s)",
 			s.InstanceID, i, item, time.Now().Format("15:04:05.000"))
 
-		response := &myservice.Method2Response{
+		response := &myservice.ServerStreamedMethodResponse{
 			Item:       item,
 			Result:     result,
 			InstanceId: s.InstanceID,
@@ -81,18 +81,18 @@ func (s *MyServiceImpl) Method2(req *myservice.Method2Request, stream myservice.
 		log.Printf("[%s] Sent response for item %d: %s", s.InstanceID, i, item)
 	}
 
-	log.Printf("[%s] Method2 completed for request #%d", s.InstanceID, count)
+	log.Printf("[%s] ServerStreamedMethod completed for request #%d", s.InstanceID, count)
 	return nil
 }
 
-// Method3 implements the client streaming RPC method
-func (s *MyServiceImpl) Method3(stream myservice.MyService_Method3Server) error {
+// ClientStreamedMethod implements the client streaming RPC method
+func (s *MyServiceImpl) ClientStreamedMethod(stream myservice.MyService_ClientStreamedMethodServer) error {
 	s.mu.Lock()
 	s.requestCount++
 	count := s.requestCount
 	s.mu.Unlock()
 
-	log.Printf("[%s] Method3 started (request #%d)", s.InstanceID, count)
+	log.Printf("[%s] ClientStreamedMethod started (request #%d)", s.InstanceID, count)
 
 	var totalProcessed int32
 	var messages []string
@@ -122,27 +122,27 @@ func (s *MyServiceImpl) Method3(stream myservice.MyService_Method3Server) error 
 	summary := fmt.Sprintf("[%s] Processed %d messages for request #%d",
 		s.InstanceID, totalProcessed, count)
 
-	response := &myservice.Method3Response{
+	response := &myservice.ClientStreamedMethodResponse{
 		TotalProcessed: totalProcessed,
 		Summary:        summary,
 		InstanceId:     s.InstanceID,
 	}
 
-	log.Printf("[%s] Method3 completed: %s", s.InstanceID, summary)
+	log.Printf("[%s] ClientStreamedMethod completed: %s", s.InstanceID, summary)
 	return stream.SendAndClose(response)
 }
 
-// StreamMethod implements the bidirectional streaming RPC method
-func (s *MyServiceImpl) StreamMethod(stream myservice.MyService_StreamMethodServer) error {
+// BidirStreamMethod implements the bidirectional streaming RPC method
+func (s *MyServiceImpl) BidirStreamMethod(stream myservice.MyService_BidirStreamMethodServer) error {
 	s.mu.Lock()
 	s.requestCount++
 	count := s.requestCount
 	s.mu.Unlock()
 
-	log.Printf("[%s] StreamMethod started (request #%d)", s.InstanceID, count)
+	log.Printf("[%s] BidirStreamMethod started (request #%d)", s.InstanceID, count)
 
 	// Use channels to coordinate between receive and send goroutines
-	requestChan := make(chan *myservice.StreamMethodRequest, 10)
+	requestChan := make(chan *myservice.BidirStreamMethodRequest, 10)
 	errorChan := make(chan error, 1)
 	done := make(chan bool, 1)
 
@@ -176,7 +176,7 @@ func (s *MyServiceImpl) StreamMethod(stream myservice.MyService_StreamMethodServ
 			// Process the request and create response
 			time.Sleep(30 * time.Millisecond) // Simulate processing
 
-			response := &myservice.StreamMethodResponse{
+			response := &myservice.BidirStreamMethodResponse{
 				Response:   fmt.Sprintf("[%s] Echo: %s (processed seq %d)", s.InstanceID, req.Message, req.Sequence),
 				Sequence:   req.Sequence,
 				InstanceId: s.InstanceID,
@@ -195,13 +195,13 @@ func (s *MyServiceImpl) StreamMethod(stream myservice.MyService_StreamMethodServ
 	// Wait for completion or error
 	select {
 	case err := <-errorChan:
-		log.Printf("[%s] StreamMethod error: %v", s.InstanceID, err)
+		log.Printf("[%s] BidirStreamMethod error: %v", s.InstanceID, err)
 		return err
 	case <-done:
-		log.Printf("[%s] StreamMethod completed for request #%d", s.InstanceID, count)
+		log.Printf("[%s] BidirStreamMethod completed for request #%d", s.InstanceID, count)
 		return nil
 	case <-stream.Context().Done():
-		log.Printf("[%s] StreamMethod cancelled", s.InstanceID)
+		log.Printf("[%s] BidirStreamMethod cancelled", s.InstanceID)
 		return stream.Context().Err()
 	}
 }

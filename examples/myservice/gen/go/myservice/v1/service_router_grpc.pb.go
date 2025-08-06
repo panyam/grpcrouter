@@ -19,11 +19,11 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	MyServiceRouter_Method1_FullMethodName      = "/myservice.v1.MyServiceRouter/Method1"
-	MyServiceRouter_Method2_FullMethodName      = "/myservice.v1.MyServiceRouter/Method2"
-	MyServiceRouter_Method3_FullMethodName      = "/myservice.v1.MyServiceRouter/Method3"
-	MyServiceRouter_StreamMethod_FullMethodName = "/myservice.v1.MyServiceRouter/StreamMethod"
-	MyServiceRouter_Register_FullMethodName     = "/myservice.v1.MyServiceRouter/Register"
+	MyServiceRouter_Method1_FullMethodName              = "/myservice.v1.MyServiceRouter/Method1"
+	MyServiceRouter_ServerStreamedMethod_FullMethodName = "/myservice.v1.MyServiceRouter/ServerStreamedMethod"
+	MyServiceRouter_ClientStreamedMethod_FullMethodName = "/myservice.v1.MyServiceRouter/ClientStreamedMethod"
+	MyServiceRouter_BidirStreamMethod_FullMethodName    = "/myservice.v1.MyServiceRouter/BidirStreamMethod"
+	MyServiceRouter_Register_FullMethodName             = "/myservice.v1.MyServiceRouter/Register"
 )
 
 // MyServiceRouterClient is the client API for MyServiceRouter service.
@@ -34,12 +34,12 @@ const (
 type MyServiceRouterClient interface {
 	// Proxy for MyService.Method1
 	Method1(ctx context.Context, in *Method1Request, opts ...grpc.CallOption) (*Method1Response, error)
-	// Proxy for MyService.Method2
-	Method2(ctx context.Context, in *Method2Request, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Method2Response], error)
-	// Proxy for MyService.Method3
-	Method3(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[Method3Request, Method3Response], error)
-	// Proxy for MyService.StreamMethod
-	StreamMethod(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[StreamMethodRequest, StreamMethodResponse], error)
+	// Proxy for MyService.ServerStreamedMethod
+	ServerStreamedMethod(ctx context.Context, in *ServerStreamedMethodRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ServerStreamedMethodResponse], error)
+	// Proxy for MyService.ClientStreamedMethod
+	ClientStreamedMethod(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[ClientStreamedMethodRequest, ClientStreamedMethodResponse], error)
+	// Proxy for MyService.BidirStreamMethod
+	BidirStreamMethod(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[BidirStreamMethodRequest, BidirStreamMethodResponse], error)
 	// Service instance registration and RPC routing
 	Register(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[MyServiceRegisterRequest, MyServiceRegisterResponse], error)
 }
@@ -62,13 +62,13 @@ func (c *myServiceRouterClient) Method1(ctx context.Context, in *Method1Request,
 	return out, nil
 }
 
-func (c *myServiceRouterClient) Method2(ctx context.Context, in *Method2Request, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Method2Response], error) {
+func (c *myServiceRouterClient) ServerStreamedMethod(ctx context.Context, in *ServerStreamedMethodRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ServerStreamedMethodResponse], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &MyServiceRouter_ServiceDesc.Streams[0], MyServiceRouter_Method2_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &MyServiceRouter_ServiceDesc.Streams[0], MyServiceRouter_ServerStreamedMethod_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &grpc.GenericClientStream[Method2Request, Method2Response]{ClientStream: stream}
+	x := &grpc.GenericClientStream[ServerStreamedMethodRequest, ServerStreamedMethodResponse]{ClientStream: stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -79,33 +79,33 @@ func (c *myServiceRouterClient) Method2(ctx context.Context, in *Method2Request,
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type MyServiceRouter_Method2Client = grpc.ServerStreamingClient[Method2Response]
+type MyServiceRouter_ServerStreamedMethodClient = grpc.ServerStreamingClient[ServerStreamedMethodResponse]
 
-func (c *myServiceRouterClient) Method3(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[Method3Request, Method3Response], error) {
+func (c *myServiceRouterClient) ClientStreamedMethod(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[ClientStreamedMethodRequest, ClientStreamedMethodResponse], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &MyServiceRouter_ServiceDesc.Streams[1], MyServiceRouter_Method3_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &MyServiceRouter_ServiceDesc.Streams[1], MyServiceRouter_ClientStreamedMethod_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &grpc.GenericClientStream[Method3Request, Method3Response]{ClientStream: stream}
+	x := &grpc.GenericClientStream[ClientStreamedMethodRequest, ClientStreamedMethodResponse]{ClientStream: stream}
 	return x, nil
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type MyServiceRouter_Method3Client = grpc.ClientStreamingClient[Method3Request, Method3Response]
+type MyServiceRouter_ClientStreamedMethodClient = grpc.ClientStreamingClient[ClientStreamedMethodRequest, ClientStreamedMethodResponse]
 
-func (c *myServiceRouterClient) StreamMethod(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[StreamMethodRequest, StreamMethodResponse], error) {
+func (c *myServiceRouterClient) BidirStreamMethod(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[BidirStreamMethodRequest, BidirStreamMethodResponse], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &MyServiceRouter_ServiceDesc.Streams[2], MyServiceRouter_StreamMethod_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &MyServiceRouter_ServiceDesc.Streams[2], MyServiceRouter_BidirStreamMethod_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &grpc.GenericClientStream[StreamMethodRequest, StreamMethodResponse]{ClientStream: stream}
+	x := &grpc.GenericClientStream[BidirStreamMethodRequest, BidirStreamMethodResponse]{ClientStream: stream}
 	return x, nil
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type MyServiceRouter_StreamMethodClient = grpc.BidiStreamingClient[StreamMethodRequest, StreamMethodResponse]
+type MyServiceRouter_BidirStreamMethodClient = grpc.BidiStreamingClient[BidirStreamMethodRequest, BidirStreamMethodResponse]
 
 func (c *myServiceRouterClient) Register(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[MyServiceRegisterRequest, MyServiceRegisterResponse], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
@@ -128,12 +128,12 @@ type MyServiceRouter_RegisterClient = grpc.BidiStreamingClient[MyServiceRegister
 type MyServiceRouterServer interface {
 	// Proxy for MyService.Method1
 	Method1(context.Context, *Method1Request) (*Method1Response, error)
-	// Proxy for MyService.Method2
-	Method2(*Method2Request, grpc.ServerStreamingServer[Method2Response]) error
-	// Proxy for MyService.Method3
-	Method3(grpc.ClientStreamingServer[Method3Request, Method3Response]) error
-	// Proxy for MyService.StreamMethod
-	StreamMethod(grpc.BidiStreamingServer[StreamMethodRequest, StreamMethodResponse]) error
+	// Proxy for MyService.ServerStreamedMethod
+	ServerStreamedMethod(*ServerStreamedMethodRequest, grpc.ServerStreamingServer[ServerStreamedMethodResponse]) error
+	// Proxy for MyService.ClientStreamedMethod
+	ClientStreamedMethod(grpc.ClientStreamingServer[ClientStreamedMethodRequest, ClientStreamedMethodResponse]) error
+	// Proxy for MyService.BidirStreamMethod
+	BidirStreamMethod(grpc.BidiStreamingServer[BidirStreamMethodRequest, BidirStreamMethodResponse]) error
 	// Service instance registration and RPC routing
 	Register(grpc.BidiStreamingServer[MyServiceRegisterRequest, MyServiceRegisterResponse]) error
 	mustEmbedUnimplementedMyServiceRouterServer()
@@ -149,14 +149,14 @@ type UnimplementedMyServiceRouterServer struct{}
 func (UnimplementedMyServiceRouterServer) Method1(context.Context, *Method1Request) (*Method1Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Method1 not implemented")
 }
-func (UnimplementedMyServiceRouterServer) Method2(*Method2Request, grpc.ServerStreamingServer[Method2Response]) error {
-	return status.Errorf(codes.Unimplemented, "method Method2 not implemented")
+func (UnimplementedMyServiceRouterServer) ServerStreamedMethod(*ServerStreamedMethodRequest, grpc.ServerStreamingServer[ServerStreamedMethodResponse]) error {
+	return status.Errorf(codes.Unimplemented, "method ServerStreamedMethod not implemented")
 }
-func (UnimplementedMyServiceRouterServer) Method3(grpc.ClientStreamingServer[Method3Request, Method3Response]) error {
-	return status.Errorf(codes.Unimplemented, "method Method3 not implemented")
+func (UnimplementedMyServiceRouterServer) ClientStreamedMethod(grpc.ClientStreamingServer[ClientStreamedMethodRequest, ClientStreamedMethodResponse]) error {
+	return status.Errorf(codes.Unimplemented, "method ClientStreamedMethod not implemented")
 }
-func (UnimplementedMyServiceRouterServer) StreamMethod(grpc.BidiStreamingServer[StreamMethodRequest, StreamMethodResponse]) error {
-	return status.Errorf(codes.Unimplemented, "method StreamMethod not implemented")
+func (UnimplementedMyServiceRouterServer) BidirStreamMethod(grpc.BidiStreamingServer[BidirStreamMethodRequest, BidirStreamMethodResponse]) error {
+	return status.Errorf(codes.Unimplemented, "method BidirStreamMethod not implemented")
 }
 func (UnimplementedMyServiceRouterServer) Register(grpc.BidiStreamingServer[MyServiceRegisterRequest, MyServiceRegisterResponse]) error {
 	return status.Errorf(codes.Unimplemented, "method Register not implemented")
@@ -200,30 +200,30 @@ func _MyServiceRouter_Method1_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _MyServiceRouter_Method2_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(Method2Request)
+func _MyServiceRouter_ServerStreamedMethod_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ServerStreamedMethodRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(MyServiceRouterServer).Method2(m, &grpc.GenericServerStream[Method2Request, Method2Response]{ServerStream: stream})
+	return srv.(MyServiceRouterServer).ServerStreamedMethod(m, &grpc.GenericServerStream[ServerStreamedMethodRequest, ServerStreamedMethodResponse]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type MyServiceRouter_Method2Server = grpc.ServerStreamingServer[Method2Response]
+type MyServiceRouter_ServerStreamedMethodServer = grpc.ServerStreamingServer[ServerStreamedMethodResponse]
 
-func _MyServiceRouter_Method3_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(MyServiceRouterServer).Method3(&grpc.GenericServerStream[Method3Request, Method3Response]{ServerStream: stream})
+func _MyServiceRouter_ClientStreamedMethod_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(MyServiceRouterServer).ClientStreamedMethod(&grpc.GenericServerStream[ClientStreamedMethodRequest, ClientStreamedMethodResponse]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type MyServiceRouter_Method3Server = grpc.ClientStreamingServer[Method3Request, Method3Response]
+type MyServiceRouter_ClientStreamedMethodServer = grpc.ClientStreamingServer[ClientStreamedMethodRequest, ClientStreamedMethodResponse]
 
-func _MyServiceRouter_StreamMethod_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(MyServiceRouterServer).StreamMethod(&grpc.GenericServerStream[StreamMethodRequest, StreamMethodResponse]{ServerStream: stream})
+func _MyServiceRouter_BidirStreamMethod_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(MyServiceRouterServer).BidirStreamMethod(&grpc.GenericServerStream[BidirStreamMethodRequest, BidirStreamMethodResponse]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type MyServiceRouter_StreamMethodServer = grpc.BidiStreamingServer[StreamMethodRequest, StreamMethodResponse]
+type MyServiceRouter_BidirStreamMethodServer = grpc.BidiStreamingServer[BidirStreamMethodRequest, BidirStreamMethodResponse]
 
 func _MyServiceRouter_Register_Handler(srv interface{}, stream grpc.ServerStream) error {
 	return srv.(MyServiceRouterServer).Register(&grpc.GenericServerStream[MyServiceRegisterRequest, MyServiceRegisterResponse]{ServerStream: stream})
@@ -246,18 +246,18 @@ var MyServiceRouter_ServiceDesc = grpc.ServiceDesc{
 	},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "Method2",
-			Handler:       _MyServiceRouter_Method2_Handler,
+			StreamName:    "ServerStreamedMethod",
+			Handler:       _MyServiceRouter_ServerStreamedMethod_Handler,
 			ServerStreams: true,
 		},
 		{
-			StreamName:    "Method3",
-			Handler:       _MyServiceRouter_Method3_Handler,
+			StreamName:    "ClientStreamedMethod",
+			Handler:       _MyServiceRouter_ClientStreamedMethod_Handler,
 			ClientStreams: true,
 		},
 		{
-			StreamName:    "StreamMethod",
-			Handler:       _MyServiceRouter_StreamMethod_Handler,
+			StreamName:    "BidirStreamMethod",
+			Handler:       _MyServiceRouter_BidirStreamMethod_Handler,
 			ServerStreams: true,
 			ClientStreams: true,
 		},

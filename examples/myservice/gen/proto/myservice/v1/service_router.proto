@@ -11,12 +11,12 @@ import "myservice/v1/service.proto";
 service MyServiceRouter {
   // Proxy for MyService.Method1
   rpc Method1(Method1Request) returns (Method1Response);
-  // Proxy for MyService.Method2
-  rpc Method2(Method2Request) returns (stream Method2Response);
-  // Proxy for MyService.Method3
-  rpc Method3(stream Method3Request) returns (Method3Response);
-  // Proxy for MyService.StreamMethod
-  rpc StreamMethod(stream StreamMethodRequest) returns (stream StreamMethodResponse);
+  // Proxy for MyService.ServerStreamedMethod
+  rpc ServerStreamedMethod(ServerStreamedMethodRequest) returns (stream ServerStreamedMethodResponse);
+  // Proxy for MyService.ClientStreamedMethod
+  rpc ClientStreamedMethod(stream ClientStreamedMethodRequest) returns (ClientStreamedMethodResponse);
+  // Proxy for MyService.BidirStreamMethod
+  rpc BidirStreamMethod(stream BidirStreamMethodRequest) returns (stream BidirStreamMethodResponse);
 
   // Service instance registration and RPC routing
   rpc Register(stream MyServiceRegisterRequest) returns (stream MyServiceRegisterResponse);
@@ -54,9 +54,9 @@ message MyServiceRpcCall {
   
   oneof request {
     Method1Request method1 = 10;
-    Method2Request method2 = 11;
-    Method3Request method3 = 12;
-    StreamMethodRequest stream_method = 13;
+    ServerStreamedMethodRequest server_streamed_method = 11;
+    ClientStreamedMethodRequest client_streamed_method = 12;
+    BidirStreamMethodRequest bidir_stream_method = 13;
   }
 }
 
@@ -68,9 +68,9 @@ message MyServiceRpcResponse {
   
   oneof response {
     Method1Response method1 = 10;
-    Method2Response method2 = 11;
-    Method3Response method3 = 12;
-    StreamMethodResponse stream_method = 13;
+    ServerStreamedMethodResponse server_streamed_method = 11;
+    ClientStreamedMethodResponse client_streamed_method = 12;
+    BidirStreamMethodResponse bidir_stream_method = 13;
   }
 }
 

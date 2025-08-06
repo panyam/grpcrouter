@@ -6,6 +6,7 @@ package v1
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"sync"
 	"time"
@@ -280,14 +281,14 @@ func (b *MyServiceBridge) handleRPCCall(rpcCall *MyServiceRpcCall) {
 	case *MyServiceRpcCall_Method1:
 		response = b.handleMethod1(rpcCall.RequestId, req.Method1)
 
-	case *MyServiceRpcCall_Method2:
-		response = b.handleMethod2(rpcCall.RequestId, req.Method2)
+	case *MyServiceRpcCall_ServerStreamedMethod:
+		response = b.handleServerStreamedMethod(rpcCall.RequestId, req.ServerStreamedMethod)
 
-	case *MyServiceRpcCall_Method3:
-		response = b.handleMethod3(rpcCall.RequestId, req.Method3)
+	case *MyServiceRpcCall_ClientStreamedMethod:
+		response = b.handleClientStreamedMethod(rpcCall.RequestId, req.ClientStreamedMethod)
 
-	case *MyServiceRpcCall_StreamMethod:
-		response = b.handleStreamMethod(rpcCall.RequestId, req.StreamMethod)
+	case *MyServiceRpcCall_BidirStreamMethod:
+		response = b.handleBidirStreamMethod(rpcCall.RequestId, req.BidirStreamMethod)
 
 	default:
 		log.Printf("[%s] Unknown method in RPC call", b.options.InstanceID)
@@ -337,73 +338,152 @@ func (b *MyServiceBridge) handleMethod1(requestID string, req *Method1Request) *
 	}
 }
 
-// handleMethod2 handles Method2 RPC calls (streaming)
-func (b *MyServiceBridge) handleMethod2(requestID string, req *Method2Request) *MyServiceRpcResponse {
-	log.Printf("[%s] Processing Method2 streaming request", b.options.InstanceID)
+// handleServerStreamedMethod handles ServerStreamedMethod RPC calls (streaming)
+func (b *MyServiceBridge) handleServerStreamedMethod(requestID string, req *ServerStreamedMethodRequest) *MyServiceRpcResponse {
+	log.Printf("[%s] Processing ServerStreamedMethod streaming request", b.options.InstanceID)
 
-	// For server streaming, we process single request and return multiple responses
-	// This requires establishing a streaming response mechanism
+	// Server streaming: call service immediately and forward responses in real-time
+	ctx := context.Background()
+	serviceStream, err := b.service.ServerStreamedMethod(ctx, req)
+	if err != nil {
+		log.Printf("[%s] Failed to start ServerStreamedMethod stream: %v", b.options.InstanceID, err)
+		return &MyServiceRpcResponse{
+			RequestId: requestID,
+			Status:    &pb.RpcStatus{Code: 13, Message: fmt.Sprintf("Stream start failed: %v", err)},
+			Metadata:  make(map[string]string),
+		}
+	}
 
-	// Note: Actual streaming implementation requires gRPC stream coordination
-	// For now, we simulate a successful streaming initiation
-	_ = req // Avoid unused variable warning for now
+	// Forward each response immediately as it arrives (real-time relay)
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Printf("[%s] Panic in ServerStreamedMethod streaming: %v", b.options.InstanceID, r)
+			}
+		}()
 
-	log.Printf("[%s] Method2 streaming initiated successfully", b.options.InstanceID)
+		for {
+			resp, err := serviceStream.Recv()
+			if err == io.EOF {
+				// End of stream - send completion signal
+				b.sendResponse(&MyServiceRpcResponse{
+					RequestId: requestID,
+					Status:    &pb.RpcStatus{Code: 0, Message: "EOF"},
+					Metadata:  make(map[string]string),
+				})
+				return
+			}
+			if err != nil {
+				// Stream error - send error signal
+				b.sendResponse(&MyServiceRpcResponse{
+					RequestId: requestID,
+					Status:    &pb.RpcStatus{Code: 13, Message: fmt.Sprintf("Stream error: %v", err)},
+					Metadata:  make(map[string]string),
+				})
+				return
+			}
+
+			// Send response immediately (real-time relay)
+			b.sendResponse(&MyServiceRpcResponse{
+				RequestId: requestID,
+				Status:    &pb.RpcStatus{Code: 0, Message: "Streaming"},
+				Metadata:  make(map[string]string),
+				Response:  &MyServiceRpcResponse_ServerStreamedMethod{ServerStreamedMethod: resp},
+			})
+		}
+	}()
+
+	log.Printf("[%s] ServerStreamedMethod streaming initiated successfully", b.options.InstanceID)
 	return &MyServiceRpcResponse{
 		RequestId: requestID,
 		Status: &pb.RpcStatus{
 			Code:    0, // OK
-			Message: "Streaming call initiated successfully",
+			Message: "Streaming initiated",
 		},
 		Metadata: make(map[string]string),
-		// Note: Streaming responses will be sent separately through the stream
 	}
 }
 
-// handleMethod3 handles Method3 RPC calls (streaming)
-func (b *MyServiceBridge) handleMethod3(requestID string, req *Method3Request) *MyServiceRpcResponse {
-	log.Printf("[%s] Processing Method3 streaming request", b.options.InstanceID)
+// handleClientStreamedMethod handles ClientStreamedMethod RPC calls (streaming)
+func (b *MyServiceBridge) handleClientStreamedMethod(requestID string, req *ClientStreamedMethodRequest) *MyServiceRpcResponse {
+	log.Printf("[%s] Processing ClientStreamedMethod streaming request", b.options.InstanceID)
 
-	// For client streaming, we expect multiple requests and single response
-	// This requires establishing a collection mechanism
-
-	// Note: Actual streaming implementation requires gRPC stream coordination
-	// For now, we simulate a successful streaming initiation
-	_ = req // Avoid unused variable warning for now
-
-	log.Printf("[%s] Method3 streaming initiated successfully", b.options.InstanceID)
+	// Client/bidirectional streaming - placeholder implementation
+	_ = req // Avoid unused variable warning
+	log.Printf("[%s] ClientStreamedMethod streaming initiated successfully", b.options.InstanceID)
 	return &MyServiceRpcResponse{
 		RequestId: requestID,
 		Status: &pb.RpcStatus{
 			Code:    0, // OK
-			Message: "Streaming call initiated successfully",
+			Message: "Streaming initiated",
 		},
 		Metadata: make(map[string]string),
-		// Note: Streaming responses will be sent separately through the stream
 	}
 }
 
-// handleStreamMethod handles StreamMethod RPC calls (streaming)
-func (b *MyServiceBridge) handleStreamMethod(requestID string, req *StreamMethodRequest) *MyServiceRpcResponse {
-	log.Printf("[%s] Processing StreamMethod streaming request", b.options.InstanceID)
+// handleBidirStreamMethod handles BidirStreamMethod RPC calls (streaming)
+func (b *MyServiceBridge) handleBidirStreamMethod(requestID string, req *BidirStreamMethodRequest) *MyServiceRpcResponse {
+	log.Printf("[%s] Processing BidirStreamMethod streaming request", b.options.InstanceID)
 
-	// For bidirectional streaming, we need to establish a streaming context
-	// This is a complex operation that requires coordination with the router
-	// For now, return appropriate status indicating streaming capability
+	// Server streaming: call service immediately and forward responses in real-time
+	ctx := context.Background()
+	serviceStream, err := b.service.BidirStreamMethod(ctx, req)
+	if err != nil {
+		log.Printf("[%s] Failed to start BidirStreamMethod stream: %v", b.options.InstanceID, err)
+		return &MyServiceRpcResponse{
+			RequestId: requestID,
+			Status:    &pb.RpcStatus{Code: 13, Message: fmt.Sprintf("Stream start failed: %v", err)},
+			Metadata:  make(map[string]string),
+		}
+	}
 
-	// Note: Actual streaming implementation requires gRPC stream coordination
-	// For now, we simulate a successful streaming initiation
-	_ = req // Avoid unused variable warning for now
+	// Forward each response immediately as it arrives (real-time relay)
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Printf("[%s] Panic in BidirStreamMethod streaming: %v", b.options.InstanceID, r)
+			}
+		}()
 
-	log.Printf("[%s] StreamMethod streaming initiated successfully", b.options.InstanceID)
+		for {
+			resp, err := serviceStream.Recv()
+			if err == io.EOF {
+				// End of stream - send completion signal
+				b.sendResponse(&MyServiceRpcResponse{
+					RequestId: requestID,
+					Status:    &pb.RpcStatus{Code: 0, Message: "EOF"},
+					Metadata:  make(map[string]string),
+				})
+				return
+			}
+			if err != nil {
+				// Stream error - send error signal
+				b.sendResponse(&MyServiceRpcResponse{
+					RequestId: requestID,
+					Status:    &pb.RpcStatus{Code: 13, Message: fmt.Sprintf("Stream error: %v", err)},
+					Metadata:  make(map[string]string),
+				})
+				return
+			}
+
+			// Send response immediately (real-time relay)
+			b.sendResponse(&MyServiceRpcResponse{
+				RequestId: requestID,
+				Status:    &pb.RpcStatus{Code: 0, Message: "Streaming"},
+				Metadata:  make(map[string]string),
+				Response:  &MyServiceRpcResponse_BidirStreamMethod{BidirStreamMethod: resp},
+			})
+		}
+	}()
+
+	log.Printf("[%s] BidirStreamMethod streaming initiated successfully", b.options.InstanceID)
 	return &MyServiceRpcResponse{
 		RequestId: requestID,
 		Status: &pb.RpcStatus{
 			Code:    0, // OK
-			Message: "Streaming call initiated successfully",
+			Message: "Streaming initiated",
 		},
 		Metadata: make(map[string]string),
-		// Note: Streaming responses will be sent separately through the stream
 	}
 }
 

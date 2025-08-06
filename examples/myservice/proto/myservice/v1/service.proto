@@ -19,13 +19,13 @@ service MyService {
   rpc Method1(Method1Request) returns (Method1Response);
   
   // Server streaming RPC
-  rpc Method2(Method2Request) returns (stream Method2Response);
+  rpc ServerStreamedMethod(ServerStreamedMethodRequest) returns (stream ServerStreamedMethodResponse);
   
   // Client streaming RPC
-  rpc Method3(stream Method3Request) returns (Method3Response);
+  rpc ClientStreamedMethod(stream ClientStreamedMethodRequest) returns (ClientStreamedMethodResponse);
   
   // Bidirectional streaming RPC
-  rpc StreamMethod(stream StreamMethodRequest) returns (stream StreamMethodResponse);
+  rpc BidirStreamMethod(stream BidirStreamMethodRequest) returns (stream BidirStreamMethodResponse);
 }
 
 message Method1Request {
@@ -38,33 +38,33 @@ message Method1Response {
   string instance_id = 2;
 }
 
-message Method2Request {
+message ServerStreamedMethodRequest {
   repeated string items = 1;
 }
 
-message Method2Response {
+message ServerStreamedMethodResponse {
   string item = 1;
   string result = 2;
   string instance_id = 3;
 }
 
-message Method3Request {
+message ClientStreamedMethodRequest {
   string data = 1;
   int32 batch_id = 2;
 }
 
-message Method3Response {
+message ClientStreamedMethodResponse {
   int32 total_processed = 1;
   string summary = 2;
   string instance_id = 3;
 }
 
-message StreamMethodRequest {
+message BidirStreamMethodRequest {
   string message = 1;
   int32 sequence = 2;
 }
 
-message StreamMethodResponse {
+message BidirStreamMethodResponse {
   string response = 1;
   int32 sequence = 2;
   string instance_id = 3;

@@ -126,27 +126,27 @@ func (x *Method1Response) GetInstanceId() string {
 	return ""
 }
 
-type Method2Request struct {
+type ServerStreamedMethodRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Items         []string               `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *Method2Request) Reset() {
-	*x = Method2Request{}
+func (x *ServerStreamedMethodRequest) Reset() {
+	*x = ServerStreamedMethodRequest{}
 	mi := &file_myservice_v1_service_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *Method2Request) String() string {
+func (x *ServerStreamedMethodRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Method2Request) ProtoMessage() {}
+func (*ServerStreamedMethodRequest) ProtoMessage() {}
 
-func (x *Method2Request) ProtoReflect() protoreflect.Message {
+func (x *ServerStreamedMethodRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_myservice_v1_service_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -158,19 +158,19 @@ func (x *Method2Request) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Method2Request.ProtoReflect.Descriptor instead.
-func (*Method2Request) Descriptor() ([]byte, []int) {
+// Deprecated: Use ServerStreamedMethodRequest.ProtoReflect.Descriptor instead.
+func (*ServerStreamedMethodRequest) Descriptor() ([]byte, []int) {
 	return file_myservice_v1_service_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *Method2Request) GetItems() []string {
+func (x *ServerStreamedMethodRequest) GetItems() []string {
 	if x != nil {
 		return x.Items
 	}
 	return nil
 }
 
-type Method2Response struct {
+type ServerStreamedMethodResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Item          string                 `protobuf:"bytes,1,opt,name=item,proto3" json:"item,omitempty"`
 	Result        string                 `protobuf:"bytes,2,opt,name=result,proto3" json:"result,omitempty"`
@@ -179,20 +179,20 @@ type Method2Response struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *Method2Response) Reset() {
-	*x = Method2Response{}
+func (x *ServerStreamedMethodResponse) Reset() {
+	*x = ServerStreamedMethodResponse{}
 	mi := &file_myservice_v1_service_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *Method2Response) String() string {
+func (x *ServerStreamedMethodResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Method2Response) ProtoMessage() {}
+func (*ServerStreamedMethodResponse) ProtoMessage() {}
 
-func (x *Method2Response) ProtoReflect() protoreflect.Message {
+func (x *ServerStreamedMethodResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_myservice_v1_service_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -204,33 +204,33 @@ func (x *Method2Response) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Method2Response.ProtoReflect.Descriptor instead.
-func (*Method2Response) Descriptor() ([]byte, []int) {
+// Deprecated: Use ServerStreamedMethodResponse.ProtoReflect.Descriptor instead.
+func (*ServerStreamedMethodResponse) Descriptor() ([]byte, []int) {
 	return file_myservice_v1_service_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *Method2Response) GetItem() string {
+func (x *ServerStreamedMethodResponse) GetItem() string {
 	if x != nil {
 		return x.Item
 	}
 	return ""
 }
 
-func (x *Method2Response) GetResult() string {
+func (x *ServerStreamedMethodResponse) GetResult() string {
 	if x != nil {
 		return x.Result
 	}
 	return ""
 }
 
-func (x *Method2Response) GetInstanceId() string {
+func (x *ServerStreamedMethodResponse) GetInstanceId() string {
 	if x != nil {
 		return x.InstanceId
 	}
 	return ""
 }
 
-type Method3Request struct {
+type ClientStreamedMethodRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Data          string                 `protobuf:"bytes,1,opt,name=data,proto3" json:"data,omitempty"`
 	BatchId       int32                  `protobuf:"varint,2,opt,name=batch_id,json=batchId,proto3" json:"batch_id,omitempty"`
@@ -238,20 +238,20 @@ type Method3Request struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *Method3Request) Reset() {
-	*x = Method3Request{}
+func (x *ClientStreamedMethodRequest) Reset() {
+	*x = ClientStreamedMethodRequest{}
 	mi := &file_myservice_v1_service_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *Method3Request) String() string {
+func (x *ClientStreamedMethodRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Method3Request) ProtoMessage() {}
+func (*ClientStreamedMethodRequest) ProtoMessage() {}
 
-func (x *Method3Request) ProtoReflect() protoreflect.Message {
+func (x *ClientStreamedMethodRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_myservice_v1_service_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -263,26 +263,26 @@ func (x *Method3Request) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Method3Request.ProtoReflect.Descriptor instead.
-func (*Method3Request) Descriptor() ([]byte, []int) {
+// Deprecated: Use ClientStreamedMethodRequest.ProtoReflect.Descriptor instead.
+func (*ClientStreamedMethodRequest) Descriptor() ([]byte, []int) {
 	return file_myservice_v1_service_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *Method3Request) GetData() string {
+func (x *ClientStreamedMethodRequest) GetData() string {
 	if x != nil {
 		return x.Data
 	}
 	return ""
 }
 
-func (x *Method3Request) GetBatchId() int32 {
+func (x *ClientStreamedMethodRequest) GetBatchId() int32 {
 	if x != nil {
 		return x.BatchId
 	}
 	return 0
 }
 
-type Method3Response struct {
+type ClientStreamedMethodResponse struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	TotalProcessed int32                  `protobuf:"varint,1,opt,name=total_processed,json=totalProcessed,proto3" json:"total_processed,omitempty"`
 	Summary        string                 `protobuf:"bytes,2,opt,name=summary,proto3" json:"summary,omitempty"`
@@ -291,20 +291,20 @@ type Method3Response struct {
 	sizeCache      protoimpl.SizeCache
 }
 
-func (x *Method3Response) Reset() {
-	*x = Method3Response{}
+func (x *ClientStreamedMethodResponse) Reset() {
+	*x = ClientStreamedMethodResponse{}
 	mi := &file_myservice_v1_service_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *Method3Response) String() string {
+func (x *ClientStreamedMethodResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Method3Response) ProtoMessage() {}
+func (*ClientStreamedMethodResponse) ProtoMessage() {}
 
-func (x *Method3Response) ProtoReflect() protoreflect.Message {
+func (x *ClientStreamedMethodResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_myservice_v1_service_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -316,33 +316,33 @@ func (x *Method3Response) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Method3Response.ProtoReflect.Descriptor instead.
-func (*Method3Response) Descriptor() ([]byte, []int) {
+// Deprecated: Use ClientStreamedMethodResponse.ProtoReflect.Descriptor instead.
+func (*ClientStreamedMethodResponse) Descriptor() ([]byte, []int) {
 	return file_myservice_v1_service_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *Method3Response) GetTotalProcessed() int32 {
+func (x *ClientStreamedMethodResponse) GetTotalProcessed() int32 {
 	if x != nil {
 		return x.TotalProcessed
 	}
 	return 0
 }
 
-func (x *Method3Response) GetSummary() string {
+func (x *ClientStreamedMethodResponse) GetSummary() string {
 	if x != nil {
 		return x.Summary
 	}
 	return ""
 }
 
-func (x *Method3Response) GetInstanceId() string {
+func (x *ClientStreamedMethodResponse) GetInstanceId() string {
 	if x != nil {
 		return x.InstanceId
 	}
 	return ""
 }
 
-type StreamMethodRequest struct {
+type BidirStreamMethodRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Message       string                 `protobuf:"bytes,1,opt,name=message,proto3" json:"message,omitempty"`
 	Sequence      int32                  `protobuf:"varint,2,opt,name=sequence,proto3" json:"sequence,omitempty"`
@@ -350,20 +350,20 @@ type StreamMethodRequest struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *StreamMethodRequest) Reset() {
-	*x = StreamMethodRequest{}
+func (x *BidirStreamMethodRequest) Reset() {
+	*x = BidirStreamMethodRequest{}
 	mi := &file_myservice_v1_service_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *StreamMethodRequest) String() string {
+func (x *BidirStreamMethodRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*StreamMethodRequest) ProtoMessage() {}
+func (*BidirStreamMethodRequest) ProtoMessage() {}
 
-func (x *StreamMethodRequest) ProtoReflect() protoreflect.Message {
+func (x *BidirStreamMethodRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_myservice_v1_service_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -375,26 +375,26 @@ func (x *StreamMethodRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use StreamMethodRequest.ProtoReflect.Descriptor instead.
-func (*StreamMethodRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use BidirStreamMethodRequest.ProtoReflect.Descriptor instead.
+func (*BidirStreamMethodRequest) Descriptor() ([]byte, []int) {
 	return file_myservice_v1_service_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *StreamMethodRequest) GetMessage() string {
+func (x *BidirStreamMethodRequest) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
 	return ""
 }
 
-func (x *StreamMethodRequest) GetSequence() int32 {
+func (x *BidirStreamMethodRequest) GetSequence() int32 {
 	if x != nil {
 		return x.Sequence
 	}
 	return 0
 }
 
-type StreamMethodResponse struct {
+type BidirStreamMethodResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Response      string                 `protobuf:"bytes,1,opt,name=response,proto3" json:"response,omitempty"`
 	Sequence      int32                  `protobuf:"varint,2,opt,name=sequence,proto3" json:"sequence,omitempty"`
@@ -403,20 +403,20 @@ type StreamMethodResponse struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *StreamMethodResponse) Reset() {
-	*x = StreamMethodResponse{}
+func (x *BidirStreamMethodResponse) Reset() {
+	*x = BidirStreamMethodResponse{}
 	mi := &file_myservice_v1_service_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *StreamMethodResponse) String() string {
+func (x *BidirStreamMethodResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*StreamMethodResponse) ProtoMessage() {}
+func (*BidirStreamMethodResponse) ProtoMessage() {}
 
-func (x *StreamMethodResponse) ProtoReflect() protoreflect.Message {
+func (x *BidirStreamMethodResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_myservice_v1_service_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -428,26 +428,26 @@ func (x *StreamMethodResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use StreamMethodResponse.ProtoReflect.Descriptor instead.
-func (*StreamMethodResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use BidirStreamMethodResponse.ProtoReflect.Descriptor instead.
+func (*BidirStreamMethodResponse) Descriptor() ([]byte, []int) {
 	return file_myservice_v1_service_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *StreamMethodResponse) GetResponse() string {
+func (x *BidirStreamMethodResponse) GetResponse() string {
 	if x != nil {
 		return x.Response
 	}
 	return ""
 }
 
-func (x *StreamMethodResponse) GetSequence() int32 {
+func (x *BidirStreamMethodResponse) GetSequence() int32 {
 	if x != nil {
 		return x.Sequence
 	}
 	return 0
 }
 
-func (x *StreamMethodResponse) GetInstanceId() string {
+func (x *BidirStreamMethodResponse) GetInstanceId() string {
 	if x != nil {
 		return x.InstanceId
 	}
@@ -465,35 +465,35 @@ const file_myservice_v1_service_proto_rawDesc = "" +
 	"\x0fMethod1Response\x12\x16\n" +
 	"\x06result\x18\x01 \x01(\tR\x06result\x12\x1f\n" +
 	"\vinstance_id\x18\x02 \x01(\tR\n" +
-	"instanceId\"&\n" +
-	"\x0eMethod2Request\x12\x14\n" +
-	"\x05items\x18\x01 \x03(\tR\x05items\"^\n" +
-	"\x0fMethod2Response\x12\x12\n" +
+	"instanceId\"3\n" +
+	"\x1bServerStreamedMethodRequest\x12\x14\n" +
+	"\x05items\x18\x01 \x03(\tR\x05items\"k\n" +
+	"\x1cServerStreamedMethodResponse\x12\x12\n" +
 	"\x04item\x18\x01 \x01(\tR\x04item\x12\x16\n" +
 	"\x06result\x18\x02 \x01(\tR\x06result\x12\x1f\n" +
 	"\vinstance_id\x18\x03 \x01(\tR\n" +
-	"instanceId\"?\n" +
-	"\x0eMethod3Request\x12\x12\n" +
+	"instanceId\"L\n" +
+	"\x1bClientStreamedMethodRequest\x12\x12\n" +
 	"\x04data\x18\x01 \x01(\tR\x04data\x12\x19\n" +
-	"\bbatch_id\x18\x02 \x01(\x05R\abatchId\"u\n" +
-	"\x0fMethod3Response\x12'\n" +
+	"\bbatch_id\x18\x02 \x01(\x05R\abatchId\"\x82\x01\n" +
+	"\x1cClientStreamedMethodResponse\x12'\n" +
 	"\x0ftotal_processed\x18\x01 \x01(\x05R\x0etotalProcessed\x12\x18\n" +
 	"\asummary\x18\x02 \x01(\tR\asummary\x12\x1f\n" +
 	"\vinstance_id\x18\x03 \x01(\tR\n" +
-	"instanceId\"K\n" +
-	"\x13StreamMethodRequest\x12\x18\n" +
+	"instanceId\"P\n" +
+	"\x18BidirStreamMethodRequest\x12\x18\n" +
 	"\amessage\x18\x01 \x01(\tR\amessage\x12\x1a\n" +
-	"\bsequence\x18\x02 \x01(\x05R\bsequence\"o\n" +
-	"\x14StreamMethodResponse\x12\x1a\n" +
+	"\bsequence\x18\x02 \x01(\x05R\bsequence\"t\n" +
+	"\x19BidirStreamMethodResponse\x12\x1a\n" +
 	"\bresponse\x18\x01 \x01(\tR\bresponse\x12\x1a\n" +
 	"\bsequence\x18\x02 \x01(\x05R\bsequence\x12\x1f\n" +
 	"\vinstance_id\x18\x03 \x01(\tR\n" +
-	"instanceId2\xe8\x02\n" +
+	"instanceId2\xc5\x03\n" +
 	"\tMyService\x12F\n" +
-	"\aMethod1\x12\x1c.myservice.v1.Method1Request\x1a\x1d.myservice.v1.Method1Response\x12H\n" +
-	"\aMethod2\x12\x1c.myservice.v1.Method2Request\x1a\x1d.myservice.v1.Method2Response0\x01\x12H\n" +
-	"\aMethod3\x12\x1c.myservice.v1.Method3Request\x1a\x1d.myservice.v1.Method3Response(\x01\x12Y\n" +
-	"\fStreamMethod\x12!.myservice.v1.StreamMethodRequest\x1a\".myservice.v1.StreamMethodResponse(\x010\x01\x1a$\x8a\xb5\x18 \n" +
+	"\aMethod1\x12\x1c.myservice.v1.Method1Request\x1a\x1d.myservice.v1.Method1Response\x12o\n" +
+	"\x14ServerStreamedMethod\x12).myservice.v1.ServerStreamedMethodRequest\x1a*.myservice.v1.ServerStreamedMethodResponse0\x01\x12o\n" +
+	"\x14ClientStreamedMethod\x12).myservice.v1.ClientStreamedMethodRequest\x1a*.myservice.v1.ClientStreamedMethodResponse(\x01\x12h\n" +
+	"\x11BidirStreamMethod\x12&.myservice.v1.BidirStreamMethodRequest\x1a'.myservice.v1.BidirStreamMethodResponse(\x010\x01\x1a$\x8a\xb5\x18 \n" +
 	"\tMyService\x12\n" +
 	"instanceid\"\a/api/v1B\xa5\x01\n" +
 	"\x10com.myservice.v1B\fServiceProtoP\x01Z2github.com/panyam/grpcrouter/examples/myservice/v1\xa2\x02\x03MXX\xaa\x02\fMyservice.V1\xca\x02\fMyservice\\V1\xe2\x02\x18Myservice\\V1\\GPBMetadata\xea\x02\rMyservice::V1b\x06proto3"
@@ -512,24 +512,24 @@ func file_myservice_v1_service_proto_rawDescGZIP() []byte {
 
 var file_myservice_v1_service_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_myservice_v1_service_proto_goTypes = []any{
-	(*Method1Request)(nil),       // 0: myservice.v1.Method1Request
-	(*Method1Response)(nil),      // 1: myservice.v1.Method1Response
-	(*Method2Request)(nil),       // 2: myservice.v1.Method2Request
-	(*Method2Response)(nil),      // 3: myservice.v1.Method2Response
-	(*Method3Request)(nil),       // 4: myservice.v1.Method3Request
-	(*Method3Response)(nil),      // 5: myservice.v1.Method3Response
-	(*StreamMethodRequest)(nil),  // 6: myservice.v1.StreamMethodRequest
-	(*StreamMethodResponse)(nil), // 7: myservice.v1.StreamMethodResponse
+	(*Method1Request)(nil),               // 0: myservice.v1.Method1Request
+	(*Method1Response)(nil),              // 1: myservice.v1.Method1Response
+	(*ServerStreamedMethodRequest)(nil),  // 2: myservice.v1.ServerStreamedMethodRequest
+	(*ServerStreamedMethodResponse)(nil), // 3: myservice.v1.ServerStreamedMethodResponse
+	(*ClientStreamedMethodRequest)(nil),  // 4: myservice.v1.ClientStreamedMethodRequest
+	(*ClientStreamedMethodResponse)(nil), // 5: myservice.v1.ClientStreamedMethodResponse
+	(*BidirStreamMethodRequest)(nil),     // 6: myservice.v1.BidirStreamMethodRequest
+	(*BidirStreamMethodResponse)(nil),    // 7: myservice.v1.BidirStreamMethodResponse
 }
 var file_myservice_v1_service_proto_depIdxs = []int32{
 	0, // 0: myservice.v1.MyService.Method1:input_type -> myservice.v1.Method1Request
-	2, // 1: myservice.v1.MyService.Method2:input_type -> myservice.v1.Method2Request
-	4, // 2: myservice.v1.MyService.Method3:input_type -> myservice.v1.Method3Request
-	6, // 3: myservice.v1.MyService.StreamMethod:input_type -> myservice.v1.StreamMethodRequest
+	2, // 1: myservice.v1.MyService.ServerStreamedMethod:input_type -> myservice.v1.ServerStreamedMethodRequest
+	4, // 2: myservice.v1.MyService.ClientStreamedMethod:input_type -> myservice.v1.ClientStreamedMethodRequest
+	6, // 3: myservice.v1.MyService.BidirStreamMethod:input_type -> myservice.v1.BidirStreamMethodRequest
 	1, // 4: myservice.v1.MyService.Method1:output_type -> myservice.v1.Method1Response
-	3, // 5: myservice.v1.MyService.Method2:output_type -> myservice.v1.Method2Response
-	5, // 6: myservice.v1.MyService.Method3:output_type -> myservice.v1.Method3Response
-	7, // 7: myservice.v1.MyService.StreamMethod:output_type -> myservice.v1.StreamMethodResponse
+	3, // 5: myservice.v1.MyService.ServerStreamedMethod:output_type -> myservice.v1.ServerStreamedMethodResponse
+	5, // 6: myservice.v1.MyService.ClientStreamedMethod:output_type -> myservice.v1.ClientStreamedMethodResponse
+	7, // 7: myservice.v1.MyService.BidirStreamMethod:output_type -> myservice.v1.BidirStreamMethodResponse
 	4, // [4:8] is the sub-list for method output_type
 	0, // [0:4] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name

@@ -250,9 +250,9 @@ type MyServiceRpcCall struct {
 	// Types that are valid to be assigned to Request:
 	//
 	//	*MyServiceRpcCall_Method1
-	//	*MyServiceRpcCall_Method2
-	//	*MyServiceRpcCall_Method3
-	//	*MyServiceRpcCall_StreamMethod
+	//	*MyServiceRpcCall_ServerStreamedMethod
+	//	*MyServiceRpcCall_ClientStreamedMethod
+	//	*MyServiceRpcCall_BidirStreamMethod
 	Request       isMyServiceRpcCall_Request `protobuf_oneof:"request"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -332,28 +332,28 @@ func (x *MyServiceRpcCall) GetMethod1() *Method1Request {
 	return nil
 }
 
-func (x *MyServiceRpcCall) GetMethod2() *Method2Request {
+func (x *MyServiceRpcCall) GetServerStreamedMethod() *ServerStreamedMethodRequest {
 	if x != nil {
-		if x, ok := x.Request.(*MyServiceRpcCall_Method2); ok {
-			return x.Method2
+		if x, ok := x.Request.(*MyServiceRpcCall_ServerStreamedMethod); ok {
+			return x.ServerStreamedMethod
 		}
 	}
 	return nil
 }
 
-func (x *MyServiceRpcCall) GetMethod3() *Method3Request {
+func (x *MyServiceRpcCall) GetClientStreamedMethod() *ClientStreamedMethodRequest {
 	if x != nil {
-		if x, ok := x.Request.(*MyServiceRpcCall_Method3); ok {
-			return x.Method3
+		if x, ok := x.Request.(*MyServiceRpcCall_ClientStreamedMethod); ok {
+			return x.ClientStreamedMethod
 		}
 	}
 	return nil
 }
 
-func (x *MyServiceRpcCall) GetStreamMethod() *StreamMethodRequest {
+func (x *MyServiceRpcCall) GetBidirStreamMethod() *BidirStreamMethodRequest {
 	if x != nil {
-		if x, ok := x.Request.(*MyServiceRpcCall_StreamMethod); ok {
-			return x.StreamMethod
+		if x, ok := x.Request.(*MyServiceRpcCall_BidirStreamMethod); ok {
+			return x.BidirStreamMethod
 		}
 	}
 	return nil
@@ -367,25 +367,25 @@ type MyServiceRpcCall_Method1 struct {
 	Method1 *Method1Request `protobuf:"bytes,10,opt,name=method1,proto3,oneof"`
 }
 
-type MyServiceRpcCall_Method2 struct {
-	Method2 *Method2Request `protobuf:"bytes,11,opt,name=method2,proto3,oneof"`
+type MyServiceRpcCall_ServerStreamedMethod struct {
+	ServerStreamedMethod *ServerStreamedMethodRequest `protobuf:"bytes,11,opt,name=server_streamed_method,json=serverStreamedMethod,proto3,oneof"`
 }
 
-type MyServiceRpcCall_Method3 struct {
-	Method3 *Method3Request `protobuf:"bytes,12,opt,name=method3,proto3,oneof"`
+type MyServiceRpcCall_ClientStreamedMethod struct {
+	ClientStreamedMethod *ClientStreamedMethodRequest `protobuf:"bytes,12,opt,name=client_streamed_method,json=clientStreamedMethod,proto3,oneof"`
 }
 
-type MyServiceRpcCall_StreamMethod struct {
-	StreamMethod *StreamMethodRequest `protobuf:"bytes,13,opt,name=stream_method,json=streamMethod,proto3,oneof"`
+type MyServiceRpcCall_BidirStreamMethod struct {
+	BidirStreamMethod *BidirStreamMethodRequest `protobuf:"bytes,13,opt,name=bidir_stream_method,json=bidirStreamMethod,proto3,oneof"`
 }
 
 func (*MyServiceRpcCall_Method1) isMyServiceRpcCall_Request() {}
 
-func (*MyServiceRpcCall_Method2) isMyServiceRpcCall_Request() {}
+func (*MyServiceRpcCall_ServerStreamedMethod) isMyServiceRpcCall_Request() {}
 
-func (*MyServiceRpcCall_Method3) isMyServiceRpcCall_Request() {}
+func (*MyServiceRpcCall_ClientStreamedMethod) isMyServiceRpcCall_Request() {}
 
-func (*MyServiceRpcCall_StreamMethod) isMyServiceRpcCall_Request() {}
+func (*MyServiceRpcCall_BidirStreamMethod) isMyServiceRpcCall_Request() {}
 
 // MyServiceRpcResponse contains typed RPC responses for MyService methods
 type MyServiceRpcResponse struct {
@@ -396,9 +396,9 @@ type MyServiceRpcResponse struct {
 	// Types that are valid to be assigned to Response:
 	//
 	//	*MyServiceRpcResponse_Method1
-	//	*MyServiceRpcResponse_Method2
-	//	*MyServiceRpcResponse_Method3
-	//	*MyServiceRpcResponse_StreamMethod
+	//	*MyServiceRpcResponse_ServerStreamedMethod
+	//	*MyServiceRpcResponse_ClientStreamedMethod
+	//	*MyServiceRpcResponse_BidirStreamMethod
 	Response      isMyServiceRpcResponse_Response `protobuf_oneof:"response"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -471,28 +471,28 @@ func (x *MyServiceRpcResponse) GetMethod1() *Method1Response {
 	return nil
 }
 
-func (x *MyServiceRpcResponse) GetMethod2() *Method2Response {
+func (x *MyServiceRpcResponse) GetServerStreamedMethod() *ServerStreamedMethodResponse {
 	if x != nil {
-		if x, ok := x.Response.(*MyServiceRpcResponse_Method2); ok {
-			return x.Method2
+		if x, ok := x.Response.(*MyServiceRpcResponse_ServerStreamedMethod); ok {
+			return x.ServerStreamedMethod
 		}
 	}
 	return nil
 }
 
-func (x *MyServiceRpcResponse) GetMethod3() *Method3Response {
+func (x *MyServiceRpcResponse) GetClientStreamedMethod() *ClientStreamedMethodResponse {
 	if x != nil {
-		if x, ok := x.Response.(*MyServiceRpcResponse_Method3); ok {
-			return x.Method3
+		if x, ok := x.Response.(*MyServiceRpcResponse_ClientStreamedMethod); ok {
+			return x.ClientStreamedMethod
 		}
 	}
 	return nil
 }
 
-func (x *MyServiceRpcResponse) GetStreamMethod() *StreamMethodResponse {
+func (x *MyServiceRpcResponse) GetBidirStreamMethod() *BidirStreamMethodResponse {
 	if x != nil {
-		if x, ok := x.Response.(*MyServiceRpcResponse_StreamMethod); ok {
-			return x.StreamMethod
+		if x, ok := x.Response.(*MyServiceRpcResponse_BidirStreamMethod); ok {
+			return x.BidirStreamMethod
 		}
 	}
 	return nil
@@ -506,25 +506,25 @@ type MyServiceRpcResponse_Method1 struct {
 	Method1 *Method1Response `protobuf:"bytes,10,opt,name=method1,proto3,oneof"`
 }
 
-type MyServiceRpcResponse_Method2 struct {
-	Method2 *Method2Response `protobuf:"bytes,11,opt,name=method2,proto3,oneof"`
+type MyServiceRpcResponse_ServerStreamedMethod struct {
+	ServerStreamedMethod *ServerStreamedMethodResponse `protobuf:"bytes,11,opt,name=server_streamed_method,json=serverStreamedMethod,proto3,oneof"`
 }
 
-type MyServiceRpcResponse_Method3 struct {
-	Method3 *Method3Response `protobuf:"bytes,12,opt,name=method3,proto3,oneof"`
+type MyServiceRpcResponse_ClientStreamedMethod struct {
+	ClientStreamedMethod *ClientStreamedMethodResponse `protobuf:"bytes,12,opt,name=client_streamed_method,json=clientStreamedMethod,proto3,oneof"`
 }
 
-type MyServiceRpcResponse_StreamMethod struct {
-	StreamMethod *StreamMethodResponse `protobuf:"bytes,13,opt,name=stream_method,json=streamMethod,proto3,oneof"`
+type MyServiceRpcResponse_BidirStreamMethod struct {
+	BidirStreamMethod *BidirStreamMethodResponse `protobuf:"bytes,13,opt,name=bidir_stream_method,json=bidirStreamMethod,proto3,oneof"`
 }
 
 func (*MyServiceRpcResponse_Method1) isMyServiceRpcResponse_Response() {}
 
-func (*MyServiceRpcResponse_Method2) isMyServiceRpcResponse_Response() {}
+func (*MyServiceRpcResponse_ServerStreamedMethod) isMyServiceRpcResponse_Response() {}
 
-func (*MyServiceRpcResponse_Method3) isMyServiceRpcResponse_Response() {}
+func (*MyServiceRpcResponse_ClientStreamedMethod) isMyServiceRpcResponse_Response() {}
 
-func (*MyServiceRpcResponse_StreamMethod) isMyServiceRpcResponse_Response() {}
+func (*MyServiceRpcResponse_BidirStreamMethod) isMyServiceRpcResponse_Response() {}
 
 var File_myservice_v1_service_router_proto protoreflect.FileDescriptor
 
@@ -544,7 +544,7 @@ const file_myservice_v1_service_router_proto_rawDesc = "" +
 	"\x05error\x18\x02 \x01(\v2\x1c.grpcrouter.v1.ErrorResponseH\x00R\x05error\x12;\n" +
 	"\brpc_call\x18\x03 \x01(\v2\x1e.myservice.v1.MyServiceRpcCallH\x00R\arpcCallB\n" +
 	"\n" +
-	"\bresponse\"\x92\x04\n" +
+	"\bresponse\"\xf4\x04\n" +
 	"\x10MyServiceRpcCall\x12\x1d\n" +
 	"\n" +
 	"request_id\x18\x01 \x01(\tR\trequestId\x12\x16\n" +
@@ -553,34 +553,34 @@ const file_myservice_v1_service_router_proto_rawDesc = "" +
 	"methodType\x12H\n" +
 	"\bmetadata\x18\x04 \x03(\v2,.myservice.v1.MyServiceRpcCall.MetadataEntryR\bmetadata\x128\n" +
 	"\amethod1\x18\n" +
-	" \x01(\v2\x1c.myservice.v1.Method1RequestH\x00R\amethod1\x128\n" +
-	"\amethod2\x18\v \x01(\v2\x1c.myservice.v1.Method2RequestH\x00R\amethod2\x128\n" +
-	"\amethod3\x18\f \x01(\v2\x1c.myservice.v1.Method3RequestH\x00R\amethod3\x12H\n" +
-	"\rstream_method\x18\r \x01(\v2!.myservice.v1.StreamMethodRequestH\x00R\fstreamMethod\x1a;\n" +
+	" \x01(\v2\x1c.myservice.v1.Method1RequestH\x00R\amethod1\x12a\n" +
+	"\x16server_streamed_method\x18\v \x01(\v2).myservice.v1.ServerStreamedMethodRequestH\x00R\x14serverStreamedMethod\x12a\n" +
+	"\x16client_streamed_method\x18\f \x01(\v2).myservice.v1.ClientStreamedMethodRequestH\x00R\x14clientStreamedMethod\x12X\n" +
+	"\x13bidir_stream_method\x18\r \x01(\v2&.myservice.v1.BidirStreamMethodRequestH\x00R\x11bidirStreamMethod\x1a;\n" +
 	"\rMetadataEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B\t\n" +
-	"\arequest\"\xfa\x03\n" +
+	"\arequest\"\xdc\x04\n" +
 	"\x14MyServiceRpcResponse\x12\x1d\n" +
 	"\n" +
 	"request_id\x18\x01 \x01(\tR\trequestId\x12L\n" +
 	"\bmetadata\x18\x02 \x03(\v20.myservice.v1.MyServiceRpcResponse.MetadataEntryR\bmetadata\x120\n" +
 	"\x06status\x18\x03 \x01(\v2\x18.grpcrouter.v1.RpcStatusR\x06status\x129\n" +
 	"\amethod1\x18\n" +
-	" \x01(\v2\x1d.myservice.v1.Method1ResponseH\x00R\amethod1\x129\n" +
-	"\amethod2\x18\v \x01(\v2\x1d.myservice.v1.Method2ResponseH\x00R\amethod2\x129\n" +
-	"\amethod3\x18\f \x01(\v2\x1d.myservice.v1.Method3ResponseH\x00R\amethod3\x12I\n" +
-	"\rstream_method\x18\r \x01(\v2\".myservice.v1.StreamMethodResponseH\x00R\fstreamMethod\x1a;\n" +
+	" \x01(\v2\x1d.myservice.v1.Method1ResponseH\x00R\amethod1\x12b\n" +
+	"\x16server_streamed_method\x18\v \x01(\v2*.myservice.v1.ServerStreamedMethodResponseH\x00R\x14serverStreamedMethod\x12b\n" +
+	"\x16client_streamed_method\x18\f \x01(\v2*.myservice.v1.ClientStreamedMethodResponseH\x00R\x14clientStreamedMethod\x12Y\n" +
+	"\x13bidir_stream_method\x18\r \x01(\v2'.myservice.v1.BidirStreamMethodResponseH\x00R\x11bidirStreamMethod\x1a;\n" +
 	"\rMetadataEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B\n" +
 	"\n" +
-	"\bresponse2\xa9\x03\n" +
+	"\bresponse2\x86\x04\n" +
 	"\x0fMyServiceRouter\x12F\n" +
-	"\aMethod1\x12\x1c.myservice.v1.Method1Request\x1a\x1d.myservice.v1.Method1Response\x12H\n" +
-	"\aMethod2\x12\x1c.myservice.v1.Method2Request\x1a\x1d.myservice.v1.Method2Response0\x01\x12H\n" +
-	"\aMethod3\x12\x1c.myservice.v1.Method3Request\x1a\x1d.myservice.v1.Method3Response(\x01\x12Y\n" +
-	"\fStreamMethod\x12!.myservice.v1.StreamMethodRequest\x1a\".myservice.v1.StreamMethodResponse(\x010\x01\x12_\n" +
+	"\aMethod1\x12\x1c.myservice.v1.Method1Request\x1a\x1d.myservice.v1.Method1Response\x12o\n" +
+	"\x14ServerStreamedMethod\x12).myservice.v1.ServerStreamedMethodRequest\x1a*.myservice.v1.ServerStreamedMethodResponse0\x01\x12o\n" +
+	"\x14ClientStreamedMethod\x12).myservice.v1.ClientStreamedMethodRequest\x1a*.myservice.v1.ClientStreamedMethodResponse(\x01\x12h\n" +
+	"\x11BidirStreamMethod\x12&.myservice.v1.BidirStreamMethodRequest\x1a'.myservice.v1.BidirStreamMethodResponse(\x010\x01\x12_\n" +
 	"\bRegister\x12&.myservice.v1.MyServiceRegisterRequest\x1a'.myservice.v1.MyServiceRegisterResponse(\x010\x01B\xab\x01\n" +
 	"\x10com.myservice.v1B\x12ServiceRouterProtoP\x01Z2github.com/panyam/grpcrouter/examples/myservice/v1\xa2\x02\x03MXX\xaa\x02\fMyservice.V1\xca\x02\fMyservice\\V1\xe2\x02\x18Myservice\\V1\\GPBMetadata\xea\x02\rMyservice::V1b\x06proto3"
 
@@ -598,27 +598,27 @@ func file_myservice_v1_service_router_proto_rawDescGZIP() []byte {
 
 var file_myservice_v1_service_router_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_myservice_v1_service_router_proto_goTypes = []any{
-	(*MyServiceRegisterRequest)(nil),  // 0: myservice.v1.MyServiceRegisterRequest
-	(*MyServiceRegisterResponse)(nil), // 1: myservice.v1.MyServiceRegisterResponse
-	(*MyServiceRpcCall)(nil),          // 2: myservice.v1.MyServiceRpcCall
-	(*MyServiceRpcResponse)(nil),      // 3: myservice.v1.MyServiceRpcResponse
-	nil,                               // 4: myservice.v1.MyServiceRpcCall.MetadataEntry
-	nil,                               // 5: myservice.v1.MyServiceRpcResponse.MetadataEntry
-	(*v1.InstanceInfo)(nil),           // 6: grpcrouter.v1.InstanceInfo
-	(*v1.Heartbeat)(nil),              // 7: grpcrouter.v1.Heartbeat
-	(*v1.UnregisterRequest)(nil),      // 8: grpcrouter.v1.UnregisterRequest
-	(*v1.RegistrationAck)(nil),        // 9: grpcrouter.v1.RegistrationAck
-	(*v1.ErrorResponse)(nil),          // 10: grpcrouter.v1.ErrorResponse
-	(v1.RpcMethodType)(0),             // 11: grpcrouter.v1.RpcMethodType
-	(*Method1Request)(nil),            // 12: myservice.v1.Method1Request
-	(*Method2Request)(nil),            // 13: myservice.v1.Method2Request
-	(*Method3Request)(nil),            // 14: myservice.v1.Method3Request
-	(*StreamMethodRequest)(nil),       // 15: myservice.v1.StreamMethodRequest
-	(*v1.RpcStatus)(nil),              // 16: grpcrouter.v1.RpcStatus
-	(*Method1Response)(nil),           // 17: myservice.v1.Method1Response
-	(*Method2Response)(nil),           // 18: myservice.v1.Method2Response
-	(*Method3Response)(nil),           // 19: myservice.v1.Method3Response
-	(*StreamMethodResponse)(nil),      // 20: myservice.v1.StreamMethodResponse
+	(*MyServiceRegisterRequest)(nil),     // 0: myservice.v1.MyServiceRegisterRequest
+	(*MyServiceRegisterResponse)(nil),    // 1: myservice.v1.MyServiceRegisterResponse
+	(*MyServiceRpcCall)(nil),             // 2: myservice.v1.MyServiceRpcCall
+	(*MyServiceRpcResponse)(nil),         // 3: myservice.v1.MyServiceRpcResponse
+	nil,                                  // 4: myservice.v1.MyServiceRpcCall.MetadataEntry
+	nil,                                  // 5: myservice.v1.MyServiceRpcResponse.MetadataEntry
+	(*v1.InstanceInfo)(nil),              // 6: grpcrouter.v1.InstanceInfo
+	(*v1.Heartbeat)(nil),                 // 7: grpcrouter.v1.Heartbeat
+	(*v1.UnregisterRequest)(nil),         // 8: grpcrouter.v1.UnregisterRequest
+	(*v1.RegistrationAck)(nil),           // 9: grpcrouter.v1.RegistrationAck
+	(*v1.ErrorResponse)(nil),             // 10: grpcrouter.v1.ErrorResponse
+	(v1.RpcMethodType)(0),                // 11: grpcrouter.v1.RpcMethodType
+	(*Method1Request)(nil),               // 12: myservice.v1.Method1Request
+	(*ServerStreamedMethodRequest)(nil),  // 13: myservice.v1.ServerStreamedMethodRequest
+	(*ClientStreamedMethodRequest)(nil),  // 14: myservice.v1.ClientStreamedMethodRequest
+	(*BidirStreamMethodRequest)(nil),     // 15: myservice.v1.BidirStreamMethodRequest
+	(*v1.RpcStatus)(nil),                 // 16: grpcrouter.v1.RpcStatus
+	(*Method1Response)(nil),              // 17: myservice.v1.Method1Response
+	(*ServerStreamedMethodResponse)(nil), // 18: myservice.v1.ServerStreamedMethodResponse
+	(*ClientStreamedMethodResponse)(nil), // 19: myservice.v1.ClientStreamedMethodResponse
+	(*BidirStreamMethodResponse)(nil),    // 20: myservice.v1.BidirStreamMethodResponse
 }
 var file_myservice_v1_service_router_proto_depIdxs = []int32{
 	6,  // 0: myservice.v1.MyServiceRegisterRequest.instance_info:type_name -> grpcrouter.v1.InstanceInfo
@@ -631,24 +631,24 @@ var file_myservice_v1_service_router_proto_depIdxs = []int32{
 	11, // 7: myservice.v1.MyServiceRpcCall.method_type:type_name -> grpcrouter.v1.RpcMethodType
 	4,  // 8: myservice.v1.MyServiceRpcCall.metadata:type_name -> myservice.v1.MyServiceRpcCall.MetadataEntry
 	12, // 9: myservice.v1.MyServiceRpcCall.method1:type_name -> myservice.v1.Method1Request
-	13, // 10: myservice.v1.MyServiceRpcCall.method2:type_name -> myservice.v1.Method2Request
-	14, // 11: myservice.v1.MyServiceRpcCall.method3:type_name -> myservice.v1.Method3Request
-	15, // 12: myservice.v1.MyServiceRpcCall.stream_method:type_name -> myservice.v1.StreamMethodRequest
+	13, // 10: myservice.v1.MyServiceRpcCall.server_streamed_method:type_name -> myservice.v1.ServerStreamedMethodRequest
+	14, // 11: myservice.v1.MyServiceRpcCall.client_streamed_method:type_name -> myservice.v1.ClientStreamedMethodRequest
+	15, // 12: myservice.v1.MyServiceRpcCall.bidir_stream_method:type_name -> myservice.v1.BidirStreamMethodRequest
 	5,  // 13: myservice.v1.MyServiceRpcResponse.metadata:type_name -> myservice.v1.MyServiceRpcResponse.MetadataEntry
 	16, // 14: myservice.v1.MyServiceRpcResponse.status:type_name -> grpcrouter.v1.RpcStatus
 	17, // 15: myservice.v1.MyServiceRpcResponse.method1:type_name -> myservice.v1.Method1Response
-	18, // 16: myservice.v1.MyServiceRpcResponse.method2:type_name -> myservice.v1.Method2Response
-	19, // 17: myservice.v1.MyServiceRpcResponse.method3:type_name -> myservice.v1.Method3Response
-	20, // 18: myservice.v1.MyServiceRpcResponse.stream_method:type_name -> myservice.v1.StreamMethodResponse
+	18, // 16: myservice.v1.MyServiceRpcResponse.server_streamed_method:type_name -> myservice.v1.ServerStreamedMethodResponse
+	19, // 17: myservice.v1.MyServiceRpcResponse.client_streamed_method:type_name -> myservice.v1.ClientStreamedMethodResponse
+	20, // 18: myservice.v1.MyServiceRpcResponse.bidir_stream_method:type_name -> myservice.v1.BidirStreamMethodResponse
 	12, // 19: myservice.v1.MyServiceRouter.Method1:input_type -> myservice.v1.Method1Request
-	13, // 20: myservice.v1.MyServiceRouter.Method2:input_type -> myservice.v1.Method2Request
-	14, // 21: myservice.v1.MyServiceRouter.Method3:input_type -> myservice.v1.Method3Request
-	15, // 22: myservice.v1.MyServiceRouter.StreamMethod:input_type -> myservice.v1.StreamMethodRequest
+	13, // 20: myservice.v1.MyServiceRouter.ServerStreamedMethod:input_type -> myservice.v1.ServerStreamedMethodRequest
+	14, // 21: myservice.v1.MyServiceRouter.ClientStreamedMethod:input_type -> myservice.v1.ClientStreamedMethodRequest
+	15, // 22: myservice.v1.MyServiceRouter.BidirStreamMethod:input_type -> myservice.v1.BidirStreamMethodRequest
 	0,  // 23: myservice.v1.MyServiceRouter.Register:input_type -> myservice.v1.MyServiceRegisterRequest
 	17, // 24: myservice.v1.MyServiceRouter.Method1:output_type -> myservice.v1.Method1Response
-	18, // 25: myservice.v1.MyServiceRouter.Method2:output_type -> myservice.v1.Method2Response
-	19, // 26: myservice.v1.MyServiceRouter.Method3:output_type -> myservice.v1.Method3Response
-	20, // 27: myservice.v1.MyServiceRouter.StreamMethod:output_type -> myservice.v1.StreamMethodResponse
+	18, // 25: myservice.v1.MyServiceRouter.ServerStreamedMethod:output_type -> myservice.v1.ServerStreamedMethodResponse
+	19, // 26: myservice.v1.MyServiceRouter.ClientStreamedMethod:output_type -> myservice.v1.ClientStreamedMethodResponse
+	20, // 27: myservice.v1.MyServiceRouter.BidirStreamMethod:output_type -> myservice.v1.BidirStreamMethodResponse
 	1,  // 28: myservice.v1.MyServiceRouter.Register:output_type -> myservice.v1.MyServiceRegisterResponse
 	24, // [24:29] is the sub-list for method output_type
 	19, // [19:24] is the sub-list for method input_type
@@ -676,15 +676,15 @@ func file_myservice_v1_service_router_proto_init() {
 	}
 	file_myservice_v1_service_router_proto_msgTypes[2].OneofWrappers = []any{
 		(*MyServiceRpcCall_Method1)(nil),
-		(*MyServiceRpcCall_Method2)(nil),
-		(*MyServiceRpcCall_Method3)(nil),
-		(*MyServiceRpcCall_StreamMethod)(nil),
+		(*MyServiceRpcCall_ServerStreamedMethod)(nil),
+		(*MyServiceRpcCall_ClientStreamedMethod)(nil),
+		(*MyServiceRpcCall_BidirStreamMethod)(nil),
 	}
 	file_myservice_v1_service_router_proto_msgTypes[3].OneofWrappers = []any{
 		(*MyServiceRpcResponse_Method1)(nil),
-		(*MyServiceRpcResponse_Method2)(nil),
-		(*MyServiceRpcResponse_Method3)(nil),
-		(*MyServiceRpcResponse_StreamMethod)(nil),
+		(*MyServiceRpcResponse_ServerStreamedMethod)(nil),
+		(*MyServiceRpcResponse_ClientStreamedMethod)(nil),
+		(*MyServiceRpcResponse_BidirStreamMethod)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
